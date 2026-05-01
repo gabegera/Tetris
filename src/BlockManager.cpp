@@ -1,13 +1,13 @@
 #include "BlockManager.h"
 
+#include <cmath>
+
 #include "Game.h"
 #include "Shapes.h"
 
-BlockManager::BlockManager(const Game& game) : m_game(game)
+BlockManager::BlockManager(Game& game) : m_game(game)
 {
-    m_blocks.resize(game.GetGameWidth() * game.GetGameHeight());
 
-    CreateBlock(5, 0, 255, 0, 0);
 }
 
 BlockManager::~BlockManager()
@@ -15,7 +15,7 @@ BlockManager::~BlockManager()
 
 }
 
-unsigned int BlockManager::GetBlockIndexFromPos(const unsigned int xPos, const unsigned int yPos) const
+unsigned int BlockManager::GetBlockIndexFromPos(const Uint8 xPos, const Uint8 yPos) const
 {
     return xPos + (yPos * m_game.GetGameWidth());
 }
@@ -25,14 +25,7 @@ std::pair<unsigned int, unsigned int> BlockManager::GetBlockPosFromIndex(const u
     std::pair<unsigned int, unsigned int> output;
 
     output.first = index % m_game.GetGameWidth();
-    if (index < m_game.GetGameWidth())
-    {
-        output.second = 0;
-    }
-    else
-    {
-        output.second = -(output.first / m_game.GetGameWidth()) + index;
-    }
+    output.second = std::floor(index / m_game.GetGameWidth());
 
     return output;
 }
@@ -48,16 +41,45 @@ void BlockManager::CreateShape(const Shape& inShape)
     // }
 }
 
-void BlockManager::CreateBlock(const uint8_t xPos, const uint8_t yPos, const uint8_t red, const uint8_t green, const uint8_t blue)
+void BlockManager::CreateBlock(const Uint8 xPos, const Uint8 yPos, const Uint8 red, const Uint8 green, const Uint8 blue)
 {
-    const uint8_t blockIndex = GetBlockIndexFromPos(xPos, yPos);
-    if (m_blocks[blockIndex] == nullptr)
+    const unsigned int blockIndex = GetBlockIndexFromPos(xPos, yPos);
+    if (!m_blocks[blockIndex])
     {
         m_blocks.emplace(m_blocks.begin() + blockIndex, std::make_unique<Block>(red, green, blue));
     }
 }
 
+bool BlockManager::MoveBlock(const unsigned int targetBlockIndex, const Uint8 newXPos, const Uint8 newYPos)
+{
+    if (newXPos >= m_game.GetGameWidth() || newYPos >= m_game.GetGameHeight())
+    {
+        return false;
+    }
+
+    if (IsBlockAtPosition(newXPos, newYPos))
+    {
+        return false;
+    }
+
+    m_blocks[GetBlockIndexFromPos(newXPos, newYPos)] = std::move(m_blocks[targetBlockIndex]);
+    return true;
+}
+
 void BlockManager::ClearLine(int yPos)
+{
+
+}
+
+void BlockManager::Init()
+{
+    m_blocks.resize(m_game.GetGameWidth() * m_game.GetGameHeight());
+
+    CreateBlock(5, 5, 255, 0, 0);
+    // MoveBlock(5, 5, 1);
+}
+
+void BlockManager::Stop()
 {
 
 }
@@ -67,19 +89,19 @@ void BlockManager::Update()
 
 }
 
-bool BlockManager::IsBlockAtPosition(const uint8_t xPos, const uint8_t yPos) const
+bool BlockManager::IsBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const
 {
     return m_blocks[GetBlockIndexFromPos(xPos, yPos)] != nullptr;
 }
 
-Block* BlockManager::GetBlockAtPosition(const uint8_t xPos, const uint8_t yPos) const
+Block* BlockManager::GetBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const
 {
     return m_blocks[GetBlockIndexFromPos(xPos, yPos)].get();
 }
 
-std::vector<std::tuple<Block*, unsigned int, unsigned int>> BlockManager::GetAllBlocks() const
+std::vector<std::tuple<Block*, Uint8, Uint8>> BlockManager::GetAllBlocks() const
 {
-    std::vector<std::tuple<Block*, unsigned int, unsigned int>> output;
+    std::vector<std::tuple<Block*, Uint8, Uint8>> output;
 
     for (int i = 0; i < m_blocks.size(); i++)
     {

@@ -2,7 +2,6 @@
 
 #include <string>
 
-
 #include "SDL3/SDL.h"
 
 
@@ -34,7 +33,7 @@ protected:
     void DrawBlocks() const;
 
     void DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos) const;
-    void DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const uint8_t red, const uint8_t green, const uint8_t blue) const;
+    void DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Uint8 red, const Uint8 green, const Uint8 blue) const;
 
 public:
     void Init();

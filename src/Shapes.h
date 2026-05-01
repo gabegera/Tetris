@@ -5,7 +5,7 @@
 
 struct Shape
 {
-    uint8_t width;
+    Uint8 width;
 
     std::string blocks;
 };

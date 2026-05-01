@@ -13,11 +13,11 @@ public:
     ~Game();
 
 protected:
-    std::unique_ptr<BlockManager> m_blockManager = std::make_unique<BlockManager>(*this);
-    std::unique_ptr<Renderer> m_renderer = std::make_unique<Renderer>(*this);
+    BlockManager m_blockManager;
+    Renderer m_renderer;
 
-    const uint8_t m_gameWidth = 10;
-    const uint8_t m_gameHeight = 20;
+    const Uint8 m_gameWidth = 10;
+    const Uint8 m_gameHeight = 20;
 
     const bool m_shouldDrawInConsole = true;
 
@@ -33,9 +33,9 @@ public:
 
     [[nodiscard]] bool IsRunning() const;
 
-    BlockManager* GetBlockManager() const;
-    Renderer* GetRenderer() const;
+    BlockManager* GetBlockManager();
+    Renderer* GetRenderer();
 
-    uint8_t GetGameWidth() const;
-    uint8_t GetGameHeight() const;
+    Uint8 GetGameWidth() const;
+    Uint8 GetGameHeight() const;
 };
