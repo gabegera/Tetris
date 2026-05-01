@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
+set(BUILD_SHARED_LIBS OFF)
+
 include(FetchContent)
 
 find_package(SDL QUIET)
@@ -16,6 +18,8 @@ if (NOT SDL_FOUND)
             SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/SDL/src"
             BINARY_DIR "${CMAKE_BINARY_DIR}/lib/SDL/build"
     )
+    set(SDL_SHARED OFF)
+    set(SDL_STATIC ON)
     FetchContent_MakeAvailable(SDL)
     file(REMOVE_RECURSE "${CMAKE_SOURCE_DIR}/lib/SDL-tmp")
 endif ()
@@ -42,4 +46,4 @@ add_executable(Tetris src/main.cpp
         src/Renderer.cpp
         src/Renderer.h)
 
-target_link_libraries(Tetris PRIVATE SDL3::SDL3 SDL3_image::SDL3_image)
+target_link_libraries(Tetris PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image)
