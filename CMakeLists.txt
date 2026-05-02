@@ -44,6 +44,7 @@ add_executable(Tetris src/main.cpp
         src/BlockManager.h
         src/Shapes.h
         src/Renderer.cpp
-        src/Renderer.h)
+        src/Renderer.h
+        src/ColorPalettes.h)
 
 target_link_libraries(Tetris PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image)

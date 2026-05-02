@@ -32,7 +32,7 @@ std::pair<unsigned int, unsigned int> BlockManager::GetBlockPosFromIndex(const u
     return output;
 }
 
-void BlockManager::CreateShape(const Shape& inShape, const Uint8 red, const Uint8 green, const Uint8 blue)
+void BlockManager::CreateShape(const Shape& inShape)
 {
     if (inShape.width < 1)
     {
@@ -54,15 +54,21 @@ void BlockManager::CreateShape(const Shape& inShape, const Uint8 red, const Uint
     {
         if (inShape.blocks[i] != ' ')
         {
-            m_fallingBlocks.push_back(CreateBlock(spawnXPos + (i % inShape.width), std::floor((i * 1.0f) / inShape.width), red, green, blue));
+            m_fallingBlocks.push_back(CreateBlock(spawnXPos + (i % inShape.width), std::floor((i * 1.0f) / inShape.width), m_colorPalette.blockColors[m_colorPalletCounter]));
         }
+    }
+
+    m_colorPalletCounter++;
+    if (m_colorPalletCounter >= m_colorPalette.blockColors.size())
+    {
+        m_colorPalletCounter = 0;
     }
 }
 
-unsigned int BlockManager::CreateBlock(const Uint8 xPos, const Uint8 yPos, const Uint8 red, const Uint8 green, const Uint8 blue)
+unsigned int BlockManager::CreateBlock(const Uint8 xPos, const Uint8 yPos, const Color& color)
 {
     const unsigned int blockIndex = GetBlockIndexFromPos(xPos, yPos);
-    m_blocks[blockIndex] = std::make_unique<Block>(red, green, blue);
+    m_blocks[blockIndex] = std::make_unique<Block>(color);
     return blockIndex;
 }
 
@@ -102,7 +108,7 @@ void BlockManager::Init()
 {
     m_blocks.resize(m_gameWidth * m_gameHeight);
 
-    CreateShape(Shapes::T, 255, 0, 0);
+    CreateShape(Shapes::O);
 }
 
 void BlockManager::Update(const float deltaTime)
@@ -215,6 +221,11 @@ Uint8 BlockManager::GetGameWidth() const
 Uint8 BlockManager::GetGameHeight() const
 {
     return m_gameHeight;
+}
+
+const ColorPalette& BlockManager::GetColorPalette() const
+{
+    return m_colorPalette;
 }
 
 bool BlockManager::IsBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const

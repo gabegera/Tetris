@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "ColorPalettes.h"
 #include "SDL3/SDL_stdinc.h"
 
 
@@ -11,23 +12,7 @@ struct Shape;
 
 struct Block
 {
-    Block(const Uint8 redTint, const Uint8 greenTint, const Uint8 blueTint)
-    {
-        red = redTint;
-        green = greenTint;
-        blue = blueTint;
-    }
-
-    Block()
-    {
-        red = 255;
-        green = 255;
-        blue = 255;
-    }
-
-    Uint8 red;
-    Uint8 green;
-    Uint8 blue;
+    Color color;
 };
 
 class BlockManager
@@ -45,6 +30,9 @@ protected:
     // Game Height in number of blocks.
     const Uint8 m_gameHeight = 20;
 
+    ColorPalette m_colorPalette = ColorPalettes::Classic;
+    unsigned int m_colorPalletCounter = 0;
+
     // How many seconds until the falling blocks get lowered.
     float m_blockFallingRate = 0.5f;
     float m_blockFallingRateTracker = 0.0f;
@@ -59,18 +47,16 @@ protected:
     // Converts a block's index into an x and y position.
     std::pair<unsigned int, unsigned int> GetBlockPosFromIndex(const unsigned int index) const;
 
-    void CreateShape(const Shape& inShape, const Uint8 red, const Uint8 green, const Uint8 blue);
+    void CreateShape(const Shape& inShape);
 
     /**
      * Creates a single block at a specified position.
      * @param xPos Number of blocks to the right of the origin.
      * @param yPos Number of blocks down from the origin.
-     * @param red 0-255 value of red tint.
-     * @param green 0-255 value of green tint.
-     * @param blue 0-255 value of blue tint.
+     * @param color The 8-bit (0-255 values) color of the block.
      * @returns The Index of the newly created block.
      */
-    unsigned int CreateBlock(const Uint8 xPos, const Uint8 yPos, const Uint8 red = 255, const Uint8 green = 255, const Uint8 blue = 255);
+    unsigned int CreateBlock(const Uint8 xPos, const Uint8 yPos, const Color& color);
 
     /**
      * Moves a block to a new position.
@@ -102,6 +88,8 @@ public:
 
     Uint8 GetGameWidth() const;
     Uint8 GetGameHeight() const;
+
+    const ColorPalette& GetColorPalette() const;
 
     bool IsBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const;
 

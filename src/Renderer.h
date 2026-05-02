@@ -2,9 +2,11 @@
 
 #include <string>
 
+#include "ColorPalettes.h"
 #include "SDL3/SDL.h"
 
 
+struct ColorPalette;
 struct Block;
 class Game;
 class Renderer
@@ -34,8 +36,7 @@ protected:
     void DrawBorders() const;
     void DrawBlocks() const;
 
-    void DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos) const;
-    void DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Uint8 red, const Uint8 green, const Uint8 blue) const;
+    void DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, Color color) const;
 
 public:
     void Init();

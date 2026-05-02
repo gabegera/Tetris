@@ -48,37 +48,39 @@ void Renderer::DrawInConsole() const
     }
     std::cout << std::endl;
 }
+
 void Renderer::DrawBorders() const
 {
-    SDL_SetTextureColorMod(m_blockTexture, 150, 150, 150);
+    Color borderColor = m_game.GetBlockManager()->GetColorPalette().borderColor;
 
     // Top and Bottom Border
     for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
     {
-        DrawBlockAtPos(x * m_blockWidth, 0);
-        DrawBlockAtPos(x * m_blockWidth, GetRenderHeight() - m_blockWidth);
+        DrawBlockAtPos(x * m_blockWidth, 0, borderColor);
+        DrawBlockAtPos(x * m_blockWidth, GetRenderHeight() - m_blockWidth, borderColor);
     }
 
     // Left and Right Borders
     for (int y = 0; y < m_game.GetBlockManager()->GetGameHeight(); y++)
     {
-        DrawBlockAtPos(0, (y * m_blockWidth) + m_blockWidth);
-        DrawBlockAtPos(GetRenderWidth() - m_blockWidth, (y * m_blockWidth) + m_blockWidth);
+        DrawBlockAtPos(0, (y * m_blockWidth) + m_blockWidth, borderColor);
+        DrawBlockAtPos(GetRenderWidth() - m_blockWidth, (y * m_blockWidth) + m_blockWidth, borderColor);
     }
 }
+
 void Renderer::DrawBlocks() const
 {
     const std::vector<std::tuple<Block*, Uint8, Uint8>> blocks = m_game.GetBlockManager()->GetAllBlocks();
     for (const auto& block : blocks)
     {
-        const Block* blockPtr = std::get<0>(block);
         const unsigned int xPos = std::get<1>(block) * m_blockWidth + m_blockWidth;
         const unsigned int yPos = std::get<2>(block) * m_blockWidth + m_blockWidth;
-        DrawBlockAtPos(xPos, yPos, blockPtr->red, blockPtr->green, blockPtr->blue);
+        const Color& color = std::get<0>(block)->color;
+        DrawBlockAtPos(xPos, yPos, color);
     }
 }
 
-void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos) const
+void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Color color) const
 {
     SDL_FRect block;
     block.w = m_blockWidth;
@@ -86,15 +88,8 @@ void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos) 
     block.x = xPos;
     block.y = yPos;
 
+    SDL_SetTextureColorMod(m_blockTexture, color.red, color.green, color.blue);
     SDL_RenderTexture(m_renderer, m_blockTexture, nullptr, &block);
-}
-
-void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Uint8 red, const Uint8 green, const Uint8 blue) const
-{
-    SDL_SetTextureColorMod(m_blockTexture, red, green, blue);
-
-    DrawBlockAtPos(xPos, yPos);
-
     SDL_SetTextureColorMod(m_blockTexture, 255, 255, 255);
 }
 
