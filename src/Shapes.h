@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 
 struct Shape
@@ -14,11 +13,9 @@ struct Shapes
 {
     static constexpr Shape L = {2, "x "
                                    "x "
-                                   "x "
                                    "xx"};
 
     static constexpr Shape J = {2, " x"
-                                   " x"
                                    " x"
                                    "xx"};
 

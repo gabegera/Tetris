@@ -19,6 +19,11 @@ void Game::ProcessInput()
             Stop();
         }
 
+        if (event.type == SDL_EVENT_GAMEPAD_ADDED)
+        {
+            SDL_OpenGamepad(event.gdevice.which);
+        }
+
         if (event.type == SDL_EVENT_KEY_DOWN)
         {
             switch (event.key.key)
@@ -28,15 +33,33 @@ void Game::ProcessInput()
                     break;
                 case SDLK_LEFT:
                 case SDLK_A:
+                    m_blockManager.MoveFallingBlocksHorizontal(-1);
                     break;
                 case SDLK_RIGHT:
                 case SDLK_D:
+                    m_blockManager.MoveFallingBlocksHorizontal(1);
                     break;
                 case SDLK_UP:
                 case SDLK_W:
                     break;
                 case SDLK_DOWN:
                 case SDLK_S:
+                    m_blockManager.MoveFallingBlocksDown();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
+        {
+            switch (event.gbutton.button)
+            {
+                case SDL_GAMEPAD_BUTTON_DPAD_LEFT:
+                    m_blockManager.MoveFallingBlocksHorizontal(-1);
+                    break;
+                case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
+                    m_blockManager.MoveFallingBlocksHorizontal(1);
                     break;
                 default:
                     break;
@@ -49,11 +72,13 @@ void Game::Start()
 {
     m_isRunning = true;
 
-    if (!SDL_Init(SDL_INIT_VIDEO))
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
         std::cerr << "Game::Start::SDL failed to Initialize." << std::endl;
         Stop();
     }
+
+
 
     m_blockManager.Init();
 
@@ -62,7 +87,6 @@ void Game::Start()
 
 void Game::Stop()
 {
-    m_blockManager.Stop();
     m_renderer.Stop();
     SDL_Quit();
     m_isRunning = false;
@@ -70,16 +94,24 @@ void Game::Stop()
 
 void Game::Update()
 {
+    const Uint32 currentTime = SDL_GetTicks();
+    m_deltaTime = (currentTime - m_lastTime) / 1000.0f;
+    m_lastTime = currentTime;
+
     ProcessInput();
 
-    m_blockManager.Update();
+    m_blockManager.Update(m_deltaTime);
 
-    m_renderer.Update();
+    m_renderer.Update(m_deltaTime);
 }
 
 bool Game::IsRunning() const
 {
     return m_isRunning;
+}
+float Game::GetDeltaTime() const
+{
+    return m_deltaTime;
 }
 
 BlockManager* Game::GetBlockManager()
@@ -92,12 +124,4 @@ Renderer* Game::GetRenderer()
     return &m_renderer;
 }
 
-Uint8 Game::GetGameWidth() const
-{
-    return m_gameWidth;
-}
 
-Uint8 Game::GetGameHeight() const
-{
-    return m_gameHeight;
-}

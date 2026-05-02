@@ -40,26 +40,68 @@ protected:
 
     Game& m_game;
 
+    // Game Width in number of blocks.
+    const Uint8 m_gameWidth = 10;
+    // Game Height in number of blocks.
+    const Uint8 m_gameHeight = 20;
+
+    // How many seconds until the falling blocks get lowered.
+    float m_blockFallingRate = 0.5f;
+    float m_blockFallingRateTracker = 0.0f;
+
     std::vector<unsigned int> m_fallingBlocks;
 
     std::vector<std::unique_ptr<Block>> m_blocks;
 
+    // Converts a block's x and y position into an index.
     unsigned int GetBlockIndexFromPos(const Uint8 xPos, const Uint8 yPos) const;
+
+    // Converts a block's index into an x and y position.
     std::pair<unsigned int, unsigned int> GetBlockPosFromIndex(const unsigned int index) const;
 
-    void CreateShape(const Shape& inShape);
-    void CreateBlock(const Uint8 xPos, const Uint8 yPos, const Uint8 red = 255, const Uint8 green = 255, const Uint8 blue = 255);
+    void CreateShape(const Shape& inShape, const Uint8 red, const Uint8 green, const Uint8 blue);
 
+    /**
+     * Creates a single block at a specified position.
+     * @param xPos Number of blocks to the right of the origin.
+     * @param yPos Number of blocks down from the origin.
+     * @param red 0-255 value of red tint.
+     * @param green 0-255 value of green tint.
+     * @param blue 0-255 value of blue tint.
+     * @returns The Index of the newly created block.
+     */
+    unsigned int CreateBlock(const Uint8 xPos, const Uint8 yPos, const Uint8 red = 255, const Uint8 green = 255, const Uint8 blue = 255);
+
+    /**
+     * Moves a block to a new position.
+     * @param targetBlockIndex The index of the block that should be moved.
+     * @param newXPos Number of blocks to the right of the origin.
+     * @param newYPos Number of blocks down from the origin.
+     * @returns If Successful
+     */
     bool MoveBlock(const unsigned int targetBlockIndex, const Uint8 newXPos, const Uint8 newYPos);
 
-    void ClearLine(int yPos);
+    /**
+     * Deletes all blocks in the specified row.
+     * @param rowYPos Number of blocks down from the origin.
+     */
+    void ClearLine(const unsigned int rowYPos);
 
 public:
     void Init();
+    void Update(const float deltaTime);
 
-    void Stop();
+    /**
+     * Shits the falling blocks either to the right or left by one.
+     * @param direction -1 for left, 1 for right.
+     */
+    void MoveFallingBlocksHorizontal(int direction);
+    void MoveFallingBlocksDown();
 
-    void Update();
+    void DropFallingBlocks();
+
+    Uint8 GetGameWidth() const;
+    Uint8 GetGameHeight() const;
 
     bool IsBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const;
 

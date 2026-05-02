@@ -16,26 +16,22 @@ protected:
     BlockManager m_blockManager;
     Renderer m_renderer;
 
-    const Uint8 m_gameWidth = 10;
-    const Uint8 m_gameHeight = 20;
-
-    const bool m_shouldDrawInConsole = true;
-
     bool m_isRunning = false;
+
+    Uint32 m_lastTime = 0;
+    float m_deltaTime = 0.0f;
 
     void ProcessInput();
 
 public:
     void Start();
     void Stop();
-
     void Update();
-
-    [[nodiscard]] bool IsRunning() const;
 
     BlockManager* GetBlockManager();
     Renderer* GetRenderer();
 
-    Uint8 GetGameWidth() const;
-    Uint8 GetGameHeight() const;
+    [[nodiscard]] bool IsRunning() const;
+
+    float GetDeltaTime() const;
 };

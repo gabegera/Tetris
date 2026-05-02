@@ -24,17 +24,17 @@ void Renderer::SetBlockTexture(const std::string& texturePath)
 void Renderer::DrawInConsole() const
 {
     // Top Border
-    for (int x = 0; x < m_game.GetGameWidth() + 2; x++)
+    for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
     {
         std::cout << "#";
     }
     std::cout << std::endl;
 
     // Game Area
-    for (int y = 0; y < m_game.GetGameHeight(); y++)
+    for (int y = 0; y < m_game.GetBlockManager()->GetGameHeight(); y++)
     {
         std::cout << "#";
-        for (int x = 0; x < m_game.GetGameWidth(); x++)
+        for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth(); x++)
         {
             m_game.GetBlockManager()->IsBlockAtPosition(x, y) ? std::cout << "x" : std::cout << " ";
         }
@@ -42,7 +42,7 @@ void Renderer::DrawInConsole() const
     }
 
     // Bottom Border
-    for (int x = 0; x < m_game.GetGameWidth() + 2; x++)
+    for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
     {
         std::cout << "#";
     }
@@ -53,17 +53,17 @@ void Renderer::DrawBorders() const
     SDL_SetTextureColorMod(m_blockTexture, 150, 150, 150);
 
     // Top and Bottom Border
-    for (int x = 0; x < m_game.GetGameWidth() + 2; x++)
+    for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
     {
-        DrawBlockAtPos(x * m_blockSize, 0);
-        DrawBlockAtPos(x * m_blockSize, GetRenderHeight() - m_blockSize);
+        DrawBlockAtPos(x * m_blockWidth, 0);
+        DrawBlockAtPos(x * m_blockWidth, GetRenderHeight() - m_blockWidth);
     }
 
     // Left and Right Borders
-    for (int y = 0; y < m_game.GetGameHeight(); y++)
+    for (int y = 0; y < m_game.GetBlockManager()->GetGameHeight(); y++)
     {
-        DrawBlockAtPos(0, (y * m_blockSize) + m_blockSize);
-        DrawBlockAtPos(GetRenderWidth() - m_blockSize, (y * m_blockSize) + m_blockSize);
+        DrawBlockAtPos(0, (y * m_blockWidth) + m_blockWidth);
+        DrawBlockAtPos(GetRenderWidth() - m_blockWidth, (y * m_blockWidth) + m_blockWidth);
     }
 }
 void Renderer::DrawBlocks() const
@@ -72,8 +72,8 @@ void Renderer::DrawBlocks() const
     for (const auto& block : blocks)
     {
         const Block* blockPtr = std::get<0>(block);
-        const unsigned int xPos = std::get<1>(block) * m_blockSize + m_blockSize;
-        const unsigned int yPos = std::get<2>(block) * m_blockSize + m_blockSize;
+        const unsigned int xPos = std::get<1>(block) * m_blockWidth + m_blockWidth;
+        const unsigned int yPos = std::get<2>(block) * m_blockWidth + m_blockWidth;
         DrawBlockAtPos(xPos, yPos, blockPtr->red, blockPtr->green, blockPtr->blue);
     }
 }
@@ -81,8 +81,8 @@ void Renderer::DrawBlocks() const
 void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos) const
 {
     SDL_FRect block;
-    block.w = m_blockSize;
-    block.h = m_blockSize;
+    block.w = m_blockWidth;
+    block.h = m_blockWidth;
     block.x = xPos;
     block.y = yPos;
 
@@ -127,7 +127,7 @@ void Renderer::Stop() const
     SDL_DestroyWindow(m_window);
 }
 
-void Renderer::Update()
+void Renderer::Update(const float deltaTime)
 {
     if (m_shouldDrawInConsole)
     {
@@ -153,10 +153,10 @@ SDL_Renderer* Renderer::GetRenderer() const
 }
 unsigned int Renderer::GetRenderWidth() const
 {
-    return (m_game.GetGameWidth() + 2) * m_blockSize;
+    return (m_game.GetBlockManager()->GetGameWidth() + 2) * m_blockWidth;
 }
 
 unsigned int Renderer::GetRenderHeight() const
 {
-    return (m_game.GetGameHeight() + 2) * m_blockSize;
+    return (m_game.GetBlockManager()->GetGameHeight() + 2) * m_blockWidth;
 }
