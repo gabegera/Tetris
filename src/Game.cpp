@@ -41,6 +41,7 @@ void Game::ProcessInput()
                     break;
                 case SDLK_UP:
                 case SDLK_W:
+                    m_blockManager.DropFallingBlocks();
                     break;
                 case SDLK_DOWN:
                 case SDLK_S:

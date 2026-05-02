@@ -46,8 +46,7 @@ void BlockManager::CreateShape(const Shape& inShape)
         return;
     }
 
-    m_fallingBlocks.clear();
-    m_fallingBlocks.resize(0);
+    StopFallingBlocks();
 
     const unsigned int spawnXPos = std::ceil(m_gameWidth / 2.0f) - inShape.width + 1; // Sets the X position of spawn as close to center as possible.
     for (int i = 0; i < inShape.blocks.size(); i++)
@@ -63,6 +62,13 @@ void BlockManager::CreateShape(const Shape& inShape)
     {
         m_colorPalletCounter = 0;
     }
+}
+
+void BlockManager::CreateNextShapeInQueue()
+{
+    CreateShape(m_shapesQueue[0]);
+    std::shift_left(m_shapesQueue.begin(), m_shapesQueue.end(), 1);
+    m_shapesQueue[ClassicShapes::numOfShapes - 1] = ClassicShapes::GetRandomShape();
 }
 
 unsigned int BlockManager::CreateBlock(const Uint8 xPos, const Uint8 yPos, const Color& color)
@@ -97,18 +103,35 @@ void BlockManager::ClearLine(const unsigned int rowYPos)
         std::cerr << "BlockManager::ClearLine::Line Y Position is greater than game height." << std::endl;
     }
 
-    const unsigned int lineStart = GetBlockIndexFromPos(0, rowYPos);
     for (int i = 0; i < m_gameWidth; i++)
     {
-        m_blocks[i + lineStart] = nullptr;
+        m_blocks[GetBlockIndexFromPos(i, rowYPos)] = nullptr;
     }
+
+    for (int i = m_blocks.size() - 1; i >= 0; i--)
+    {
+        const auto [xPos, yPos] = GetBlockPosFromIndex(i);
+        MoveBlock(i, xPos, yPos + 1);
+    }
+}
+
+void BlockManager::StopFallingBlocks()
+{
+    m_fallingBlocks.clear();
+    m_fallingBlocks.resize(0);
 }
 
 void BlockManager::Init()
 {
     m_blocks.resize(m_gameWidth * m_gameHeight);
 
-    CreateShape(Shapes::O);
+    m_shapesQueue.resize(ClassicShapes::numOfShapes);
+    for (int i = 0; i < ClassicShapes::numOfShapes; i++)
+    {
+        m_shapesQueue[i] = ClassicShapes::GetRandomShape();
+    }
+
+    CreateNextShapeInQueue();
 }
 
 void BlockManager::Update(const float deltaTime)
@@ -121,45 +144,18 @@ void BlockManager::Update(const float deltaTime)
     }
 }
 
-void BlockManager::MoveFallingBlocksHorizontal(int direction)
+bool BlockManager::MoveFallingBlocksHorizontal(int direction)
 {
     if (direction == 0)
     {
         std::cerr << "BlockManager::MoveFallingBlocksHorizontal::Invalid Direction" << std::endl;
-        return;
+        return false;
     }
 
     // Clamp direction to either -1 or 1.
     direction < 0 ? direction = -1 : direction = 1;
 
-    // Check that moving the blocks won't cause collisions.
-    for (int i = 0; i < m_fallingBlocks.size(); i++)
-    {
-        const unsigned int targetBlockIndex = m_fallingBlocks[i];
-        const auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
-
-        // Check for left boundary.
-        if (direction == -1 && xPos == 0)
-        {
-            std::cout << "Cannot move left due to boundary." << std::endl;
-            return;
-        }
-        // Check for right boundary.
-        if (direction == 1 && xPos == m_gameWidth - 1)
-        {
-            std::cout << "Cannot move right due to boundary." << std::endl;
-            return;
-        }
-
-        // Check for blocks in the way.
-        if (m_blocks[targetBlockIndex + direction] != nullptr &&
-            !std::ranges::contains(m_fallingBlocks, targetBlockIndex + direction)) // ignore other falling blocks.
-        {
-            const std::string leftOrRight = direction < 0 ? "left" : "right";
-            std::cout << "Cannot move " << leftOrRight << " due to another block being in the way." << std::endl;
-            return;
-        }
-    }
+    if (!CanFallingBlocksMoveHorizontal(direction)) return false;
 
     if (direction == 1) // starts from the end of the vector if moving right.
     {
@@ -181,21 +177,24 @@ void BlockManager::MoveFallingBlocksHorizontal(int direction)
             m_fallingBlocks[i] = targetBlockIndex + direction;
         }
     }
+
+    return true;
 }
 
-void BlockManager::MoveFallingBlocksDown()
+bool BlockManager::MoveFallingBlocksDown()
 {
-    for (int i = 0; i < m_fallingBlocks.size(); i++)
+    if (!CanFallingBlocksMoveDown())
     {
-        const unsigned int targetBlockIndex = m_fallingBlocks[i];
-        const auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
-
-        // Check for bottom boundary.
-        if (yPos == m_gameHeight - 1)
+        for (int i = 0; i < m_fallingBlocks.size(); i++)
         {
-            std::cout << "Cannot move down due to boundary." << std::endl;
-            return;
+            const Uint8 lineYPos = GetBlockPosFromIndex(m_fallingBlocks[i]).second;
+            if (CanLineBeCleared(lineYPos))
+            {
+                ClearLine(lineYPos);
+            }
         }
+        CreateNextShapeInQueue();
+        return false;
     }
 
     for (int i = m_fallingBlocks.size() - 1; i >= 0; i--)
@@ -206,11 +205,16 @@ void BlockManager::MoveFallingBlocksDown()
         m_fallingBlocks[i] = targetBlockIndex + m_gameWidth;
     }
     m_blockFallingRateTracker = 0.0f;
+
+    return true;
 }
 
 void BlockManager::DropFallingBlocks()
 {
+    while (MoveFallingBlocksDown())
+    {
 
+    }
 }
 
 Uint8 BlockManager::GetGameWidth() const
@@ -252,4 +256,80 @@ std::vector<std::tuple<Block*, Uint8, Uint8>> BlockManager::GetAllBlocks() const
     }
 
     return output;
+}
+
+bool BlockManager::CanFallingBlocksMoveHorizontal(int direction) const
+{
+    // Clamp direction to either -1 or 1.
+    direction < 0 ? direction = -1 : direction = 1;
+
+    // Check that moving the blocks won't cause collisions.
+    for (int i = 0; i < m_fallingBlocks.size(); i++)
+    {
+        const unsigned int targetBlockIndex = m_fallingBlocks[i];
+        const auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
+
+        // Check for left boundary.
+        if (direction == -1 && xPos == 0)
+        {
+            std::cout << "Cannot move left due to boundary." << std::endl;
+            return false;
+        }
+        // Check for right boundary.
+        if (direction == 1 && xPos == m_gameWidth - 1)
+        {
+            std::cout << "Cannot move right due to boundary." << std::endl;
+            return false;
+        }
+
+        // Check for blocks in the way.
+        if (m_blocks[targetBlockIndex + direction] != nullptr &&
+            !std::ranges::contains(m_fallingBlocks, targetBlockIndex + direction)) // ignore other falling blocks.
+        {
+            const std::string leftOrRight = direction < 0 ? "left" : "right";
+            std::cout << "Cannot move " << leftOrRight << " due to another block being in the way." << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool BlockManager::CanFallingBlocksMoveDown() const
+{
+    for (int i = 0; i < m_fallingBlocks.size(); i++)
+    {
+        const unsigned int targetBlockIndex = m_fallingBlocks[i];
+        const auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
+
+        // Check for bottom boundary.
+        if (yPos == m_gameHeight - 1)
+        {
+            std::cout << "Cannot move down due to boundary." << std::endl;
+            return false;
+        }
+
+        // Check for blocks below shape
+        if (IsBlockAtPosition(xPos, yPos + 1) &&
+            !std::ranges::contains(m_fallingBlocks, GetBlockIndexFromPos(xPos, yPos + 1))) // ignore other falling blocks.
+        {
+            std::cout << "Cannot move down due to block." << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool BlockManager::CanLineBeCleared(const Uint8 lineYPos) const
+{
+    for (int i = 0; i < m_gameWidth; i++)
+    {
+        if (m_blocks[GetBlockIndexFromPos(i, lineYPos)] == nullptr)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
