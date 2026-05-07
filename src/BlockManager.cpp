@@ -17,6 +17,42 @@ BlockManager::~BlockManager()
 
 }
 
+void BlockManager::FillShapesBag()
+{
+    m_shapesBag =
+    {
+        ClassicShapes::I,
+        ClassicShapes::J,
+        ClassicShapes::L,
+        ClassicShapes::O,
+        ClassicShapes::S,
+        ClassicShapes::Z,
+        ClassicShapes::T
+    };
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::ranges::shuffle(m_shapesBag, g);
+}
+
+void BlockManager::FillShapesQueue()
+{
+    unsigned int queueSize = 0;
+    for (int i = 0; i < m_shapesQueue.capacity(); i++)
+    {
+        if (!m_shapesQueue[i].IsValid()) queueSize++;
+    }
+
+    for (int i = 0; i < queueSize; i++)
+    {
+        if (m_shapesBag.empty())
+        {
+            FillShapesBag();
+        }
+        m_shapesQueue[i + (m_shapesQueue.capacity() - queueSize)] = m_shapesBag[i];
+        m_shapesBag.erase(m_shapesBag.begin() + i);
+    }
+}
+
 unsigned int BlockManager::GetBlockIndexFromPos(const Uint8 xPos, const Uint8 yPos) const
 {
     return xPos + (yPos * m_gameWidth);
@@ -68,7 +104,7 @@ void BlockManager::CreateNextShapeInQueue()
 {
     CreateShape(m_shapesQueue[0]);
     std::shift_left(m_shapesQueue.begin(), m_shapesQueue.end(), 1);
-    m_shapesQueue[ClassicShapes::numOfShapes - 1] = ClassicShapes::GetRandomShape();
+    FillShapesQueue();
 }
 
 unsigned int BlockManager::CreateBlock(const Uint8 xPos, const Uint8 yPos, const Color& color)
@@ -86,13 +122,26 @@ bool BlockManager::MoveBlock(const unsigned int targetBlockIndex, const Uint8 ne
         return false;
     }
 
-    if (IsBlockAtPosition(newXPos, newYPos))
+    const auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
+    if (IsFallingBlockAtPosition(xPos, yPos) && IsFallingBlockAtPosition(newXPos, newYPos))
+    {
+
+    }
+    else if (IsBlockAtPosition(newXPos, newYPos))
     {
         std::cerr << "BlockManager::MoveBlock::There is a block already in the new position." << std::endl;
         return false;
     }
 
-    m_blocks[GetBlockIndexFromPos(newXPos, newYPos)] = std::move(m_blocks[targetBlockIndex]);
+    const unsigned int newIndex = GetBlockIndexFromPos(newXPos, newYPos);
+    m_blocks[newIndex] = std::move(m_blocks[targetBlockIndex]);
+    for (int i = 0; i < m_fallingBlocks.size(); i++)
+    {
+        if (m_fallingBlocks[i] == targetBlockIndex)
+        {
+            m_fallingBlocks[i] = newIndex;
+        }
+    }
     return true;
 }
 
@@ -125,11 +174,9 @@ void BlockManager::Init()
 {
     m_blocks.resize(m_gameWidth * m_gameHeight);
 
-    m_shapesQueue.resize(ClassicShapes::numOfShapes);
-    for (int i = 0; i < ClassicShapes::numOfShapes; i++)
-    {
-        m_shapesQueue[i] = ClassicShapes::GetRandomShape();
-    }
+    FillShapesBag();
+    m_shapesQueue.resize(m_shapesBag.size());
+    FillShapesQueue();
 
     CreateNextShapeInQueue();
 }
@@ -140,11 +187,11 @@ void BlockManager::Update(const float deltaTime)
 
     if (m_blockFallingRateTracker > m_blockFallingRate)
     {
-        MoveFallingBlocksDown();
+        MoveFallingShapeDown();
     }
 }
 
-bool BlockManager::MoveFallingBlocksHorizontal(int direction)
+bool BlockManager::MoveFallingShapeHorizontal(int direction)
 {
     if (direction == 0)
     {
@@ -164,7 +211,6 @@ bool BlockManager::MoveFallingBlocksHorizontal(int direction)
             const unsigned int targetBlockIndex = m_fallingBlocks[i];
             auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
             MoveBlock(targetBlockIndex, xPos + direction, yPos);
-            m_fallingBlocks[i] = targetBlockIndex + direction;
         }
     }
     else // starts from the beginning of the vector if moving left.
@@ -174,14 +220,13 @@ bool BlockManager::MoveFallingBlocksHorizontal(int direction)
             const unsigned int targetBlockIndex = m_fallingBlocks[i];
             auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
             MoveBlock(targetBlockIndex, xPos + direction, yPos);
-            m_fallingBlocks[i] = targetBlockIndex + direction;
         }
     }
 
     return true;
 }
 
-bool BlockManager::MoveFallingBlocksDown()
+bool BlockManager::MoveFallingShapeDown()
 {
     if (!CanFallingBlocksMoveDown())
     {
@@ -197,23 +242,54 @@ bool BlockManager::MoveFallingBlocksDown()
         return false;
     }
 
+    std::ranges::sort(m_fallingBlocks, [](const unsigned int a, const unsigned int b)
+    {
+       return a < b;
+    });
     for (int i = m_fallingBlocks.size() - 1; i >= 0; i--)
     {
         const unsigned int targetBlockIndex = m_fallingBlocks[i];
         const auto [xPos, yPos] = GetBlockPosFromIndex(targetBlockIndex);
         MoveBlock(targetBlockIndex, xPos, yPos + 1);
-        m_fallingBlocks[i] = targetBlockIndex + m_gameWidth;
     }
     m_blockFallingRateTracker = 0.0f;
 
     return true;
 }
 
-void BlockManager::DropFallingBlocks()
+void BlockManager::DropFallingShape()
 {
-    while (MoveFallingBlocksDown())
+    while (MoveFallingShapeDown())
     {
 
+    }
+}
+
+void BlockManager::RotateFallingShape()
+{
+    unsigned int xRotationPoint = m_gameWidth;
+    unsigned int yRotationPoint = m_gameHeight;
+    // Find the top left corner of the bounds of the shape to rotate around.
+    for (const unsigned int fallingBlockIndex : m_fallingBlocks)
+    {
+        const auto [xPos, yPos] = GetBlockPosFromIndex(fallingBlockIndex);
+        if (xPos < xRotationPoint)
+        {
+            xRotationPoint = xPos;
+        }
+        if (yPos < yRotationPoint)
+        {
+            yRotationPoint = yPos;
+        }
+    }
+
+    for (int i = 0; i < m_fallingBlocks.size(); i++)
+    {
+        const unsigned int fallingBlockIndex = m_fallingBlocks[i];
+        const auto [xPos, yPos] = GetBlockPosFromIndex(fallingBlockIndex);
+        const unsigned int newXPos = (yPos - yRotationPoint) + xRotationPoint;
+        const unsigned int newYPos = -(xPos - xRotationPoint) + yRotationPoint;
+        MoveBlock(fallingBlockIndex, newXPos, newYPos);
     }
 }
 
@@ -235,6 +311,11 @@ const ColorPalette& BlockManager::GetColorPalette() const
 bool BlockManager::IsBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const
 {
     return m_blocks[GetBlockIndexFromPos(xPos, yPos)] != nullptr;
+}
+
+bool BlockManager::IsFallingBlockAtPosition(const Uint8 xPos, const Uint8 yPos)
+{
+    return std::ranges::contains(m_fallingBlocks.begin(), m_fallingBlocks.end(), GetBlockIndexFromPos(xPos, yPos));
 }
 
 Block* BlockManager::GetBlockAtPosition(const Uint8 xPos, const Uint8 yPos) const

@@ -38,10 +38,14 @@ protected:
     float m_blockFallingRateTracker = 0.0f;
 
     std::vector<Shape> m_shapesQueue;
+    std::vector<Shape> m_shapesBag;
 
     std::vector<unsigned int> m_fallingBlocks;
 
     std::vector<std::unique_ptr<Block>> m_blocks;
+
+    void FillShapesBag();
+    void FillShapesQueue();
 
     // Converts a block's x and y position into an index.
     unsigned int GetBlockIndexFromPos(Uint8 xPos, Uint8 yPos) const;
@@ -89,15 +93,18 @@ public:
      * @param direction -1 for left, 1 for right.
      * @returns Was Successful.
      */
-    bool MoveFallingBlocksHorizontal(int direction);
+    bool MoveFallingShapeHorizontal(int direction);
 
     /**
      * Shifts the falling blocks down by 1 position.
      * @returns Was Successful.
      */
-    bool MoveFallingBlocksDown();
+    bool MoveFallingShapeDown();
 
-    void DropFallingBlocks();
+    void DropFallingShape();
+
+    // Rotates the falling blocks clockwise by 90 degrees.
+    void RotateFallingShape();
 
     Uint8 GetGameWidth() const;
     Uint8 GetGameHeight() const;
@@ -105,6 +112,7 @@ public:
     const ColorPalette& GetColorPalette() const;
 
     bool IsBlockAtPosition(Uint8 xPos, Uint8 yPos) const;
+    bool IsFallingBlockAtPosition(Uint8 xPos, Uint8 yPos);
 
     Block* GetBlockAtPosition(Uint8 xPos, Uint8 yPos) const;
 

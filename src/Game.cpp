@@ -33,19 +33,22 @@ void Game::ProcessInput()
                     break;
                 case SDLK_LEFT:
                 case SDLK_A:
-                    m_blockManager.MoveFallingBlocksHorizontal(-1);
+                    m_blockManager.MoveFallingShapeHorizontal(-1);
                     break;
                 case SDLK_RIGHT:
                 case SDLK_D:
-                    m_blockManager.MoveFallingBlocksHorizontal(1);
+                    m_blockManager.MoveFallingShapeHorizontal(1);
                     break;
                 case SDLK_UP:
                 case SDLK_W:
-                    m_blockManager.DropFallingBlocks();
+                    m_blockManager.DropFallingShape();
                     break;
                 case SDLK_DOWN:
                 case SDLK_S:
-                    m_blockManager.MoveFallingBlocksDown();
+                    m_blockManager.MoveFallingShapeDown();
+                    break;
+                case SDLK_SPACE:
+                    m_blockManager.RotateFallingShape();
                     break;
                 default:
                     break;
@@ -57,11 +60,13 @@ void Game::ProcessInput()
             switch (event.gbutton.button)
             {
                 case SDL_GAMEPAD_BUTTON_DPAD_LEFT:
-                    m_blockManager.MoveFallingBlocksHorizontal(-1);
+                    m_blockManager.MoveFallingShapeHorizontal(-1);
                     break;
                 case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
-                    m_blockManager.MoveFallingBlocksHorizontal(1);
+                    m_blockManager.MoveFallingShapeHorizontal(1);
                     break;
+                case SDL_GAMEPAD_BUTTON_SOUTH:
+                    m_blockManager.RotateFallingShape();
                 default:
                     break;
             }
@@ -78,8 +83,6 @@ void Game::Start()
         std::cerr << "Game::Start::SDL failed to Initialize." << std::endl;
         Stop();
     }
-
-
 
     m_blockManager.Init();
 
