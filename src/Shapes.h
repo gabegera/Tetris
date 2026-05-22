@@ -13,6 +13,11 @@ struct Shape
     {
         return !blocks.empty();
     }
+
+    Uint8 GetHeight() const
+    {
+        return std::ceil((blocks.size() * 1.0f) / width);
+    }
 };
 
 struct ClassicShapes

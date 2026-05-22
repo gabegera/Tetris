@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "Game.h"
+#include "Application.h"
 
-Renderer::Renderer(Game& game) : m_game(game)
+Renderer::Renderer(Application& app) : m_application(app)
 {
 
 }
@@ -21,72 +21,24 @@ void Renderer::SetBlockTexture(const std::string& texturePath)
     SDL_DestroySurface(blockSurface);
 }
 
-void Renderer::DrawInConsole() const
+void Renderer::SetColorPalette(const ColorPalette& newPalette)
 {
-    // Top Border
-    for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
-    {
-        std::cout << "#";
-    }
-    std::cout << std::endl;
-
-    // Game Area
-    for (int y = 0; y < m_game.GetBlockManager()->GetGameHeight(); y++)
-    {
-        std::cout << "#";
-        for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth(); x++)
-        {
-            m_game.GetBlockManager()->IsBlockAtPosition(x, y) ? std::cout << "x" : std::cout << " ";
-        }
-        std::cout << "#" << std::endl;
-    }
-
-    // Bottom Border
-    for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
-    {
-        std::cout << "#";
-    }
-    std::cout << std::endl;
+    m_colorPalette = newPalette;
 }
 
-void Renderer::DrawBorders() const
+void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Uint16 colorID) const
 {
-    Color borderColor = m_game.GetBlockManager()->GetColorPalette().borderColor;
-
-    // Top and Bottom Border
-    for (int x = 0; x < m_game.GetBlockManager()->GetGameWidth() + 2; x++)
-    {
-        DrawBlockAtPos(x * m_blockWidth, 0, borderColor);
-        DrawBlockAtPos(x * m_blockWidth, GetRenderHeight() - m_blockWidth, borderColor);
-    }
-
-    // Left and Right Borders
-    for (int y = 0; y < m_game.GetBlockManager()->GetGameHeight(); y++)
-    {
-        DrawBlockAtPos(0, (y * m_blockWidth) + m_blockWidth, borderColor);
-        DrawBlockAtPos(GetRenderWidth() - m_blockWidth, (y * m_blockWidth) + m_blockWidth, borderColor);
-    }
-}
-
-void Renderer::DrawBlocks() const
-{
-    const std::vector<std::tuple<Block*, Uint8, Uint8>> blocks = m_game.GetBlockManager()->GetAllBlocks();
-    for (const auto& block : blocks)
-    {
-        const unsigned int xPos = std::get<1>(block) * m_blockWidth + m_blockWidth;
-        const unsigned int yPos = std::get<2>(block) * m_blockWidth + m_blockWidth;
-        const Color& color = std::get<0>(block)->color;
-        DrawBlockAtPos(xPos, yPos, color);
-    }
+    const Uint16 index = colorID > 0 ? colorID % m_colorPalette.blockColors.size() : 0;
+    DrawBlockAtPos(xPos, yPos, m_colorPalette.blockColors[index]);
 }
 
 void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Color color) const
 {
     SDL_FRect block;
-    block.w = m_blockWidth;
-    block.h = m_blockWidth;
-    block.x = xPos;
-    block.y = yPos;
+    block.w = m_blockResolution;
+    block.h = m_blockResolution;
+    block.x = xPos * m_blockResolution;
+    block.y = yPos * m_blockResolution;
 
     SDL_SetTextureColorMod(m_blockTexture, color.red, color.green, color.blue);
     SDL_RenderTexture(m_renderer, m_blockTexture, nullptr, &block);
@@ -99,21 +51,19 @@ void Renderer::Init()
     if (!m_window)
     {
         std::cerr << "Renderer::Init::SDL failed to Create Window." << std::endl;
-        m_game.Stop();
+        m_application.Stop();
     }
 
     m_renderer = SDL_CreateRenderer(m_window, NULL);
     if (!m_renderer)
     {
         std::cerr << "Renderer::Init::SDL failed to Create Renderer." << std::endl;
-        m_game.Stop();
+        m_application.Stop();
     }
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
     SetBlockTexture("../res/Tetris_Block.png");
     SDL_SetTextureScaleMode(m_blockTexture, SDL_SCALEMODE_PIXELART);
-
-    SDL_SetRenderLogicalPresentation(m_renderer, GetRenderWidth(), GetRenderHeight(), SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
 }
 
 void Renderer::Stop() const
@@ -122,19 +72,24 @@ void Renderer::Stop() const
     SDL_DestroyWindow(m_window);
 }
 
-void Renderer::Update(const float deltaTime)
+void Renderer::Update(const float deltaTime) const
 {
-    if (m_shouldDrawInConsole)
-    {
-        DrawInConsole();
-    }
-
-    SDL_RenderClear(m_renderer);
-
-    DrawBorders();
-    DrawBlocks();
-
     SDL_RenderPresent(m_renderer);
+}
+
+void Renderer::SetRendererSizeInPixels(const Uint16 width, const Uint16 height) const
+{
+    SDL_SetRenderLogicalPresentation(m_renderer, width, height, SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
+}
+
+void Renderer::SetRendererSizeInGameDimensions(const Uint16 gameWidth, const Uint16 gameHeight) const
+{
+    SetRendererSizeInPixels((gameWidth + 2) * m_blockResolution, (gameHeight + 2) * m_blockResolution);
+}
+
+void Renderer::ClearRenderer() const
+{
+    SDL_RenderClear(m_renderer);
 }
 
 SDL_Window* Renderer::GetWindow() const
@@ -142,16 +97,12 @@ SDL_Window* Renderer::GetWindow() const
     return m_window;
 }
 
-SDL_Renderer* Renderer::GetRenderer() const
+SDL_Renderer* Renderer::GetSDLRenderer() const
 {
     return m_renderer;
 }
-unsigned int Renderer::GetRenderWidth() const
-{
-    return (m_game.GetBlockManager()->GetGameWidth() + 2) * m_blockWidth;
-}
 
-unsigned int Renderer::GetRenderHeight() const
+const ColorPalette& Renderer::GetColorPalette() const
 {
-    return (m_game.GetBlockManager()->GetGameHeight() + 2) * m_blockWidth;
+    return m_colorPalette;
 }

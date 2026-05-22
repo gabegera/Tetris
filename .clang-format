@@ -7,7 +7,7 @@ AlignConsecutiveDeclarations: false
 AlignOperands: true
 AlignTrailingComments: false
 AlwaysBreakTemplateDeclarations: Yes
-BraceWrapping:
+BraceWrapping: 
   AfterCaseLabel: true
   AfterClass: true
   AfterControlStatement: true
@@ -17,10 +17,10 @@ BraceWrapping:
   AfterStruct: true
   AfterUnion: true
   AfterExternBlock: true
-  BeforeCatch: true
-  BeforeElse: true
+  BeforeCatch: false
+  BeforeElse: false
   BeforeLambdaBody: true
-  BeforeWhile: true
+  BeforeWhile: false
   IndentBraces: false
   SplitEmptyFunction: false
   SplitEmptyRecord: false
@@ -31,7 +31,7 @@ BreakConstructorInitializersBeforeComma: false
 ColumnLimit: 120
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ContinuationIndentWidth: 8
-IncludeCategories:
+IncludeCategories: 
   - Regex: '^<.*'
     Priority: 1
   - Regex: '^".*'

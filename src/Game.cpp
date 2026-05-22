@@ -2,120 +2,80 @@
 
 #include <iostream>
 
-Game::Game() : m_blockManager(*this), m_renderer(*this) {}
+#include "Application.h"
+
+Game::Game(Application& app, const Uint8 gameWidth, const Uint8 gameHeight)
+    : m_gameWidth(gameWidth), m_gameHeight(gameHeight), m_application(app), m_blockManager(*this)
+{
+
+}
 
 Game::~Game()
 {
 
 }
 
-void Game::ProcessInput()
+void Game::RenderBorders() const
 {
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
+    const Color borderColor = GetRenderer()->GetColorPalette().borderColor;
+
+    // Top and Bottom Border
+    for (int x = 0; x < m_gameWidth + 2; x++)
     {
-        if (event.type == SDL_EVENT_QUIT)
+        GetRenderer()->DrawBlockAtPos(x, 0, borderColor);
+        GetRenderer()->DrawBlockAtPos(x, m_gameHeight + 1, borderColor);
+    }
+
+    // Left and Right Borders
+    for (int y = 0; y < m_gameHeight; y++)
+    {
+        GetRenderer()->DrawBlockAtPos(0, y + 1, borderColor);
+        GetRenderer()->DrawBlockAtPos(m_gameWidth + 1, y + 1, borderColor);
+    }
+}
+
+void Game::RenderBlocks()
+{
+    std::vector<Uint8> xPositions;
+    std::vector<Uint8> yPositions;
+    std::vector<Block*> blockPtrs;
+    GetBlockManager()->GetAllBlocks(xPositions, yPositions, blockPtrs);
+
+    for (int i = 0; i < blockPtrs.size(); i++)
+    {
+        if (!blockPtrs[i])
         {
-            Stop();
+            std::cerr << "Game::RenderBlocks::Failed to render block. Invalid Block Pointer" << std::endl;
+            continue;
         }
 
-        if (event.type == SDL_EVENT_GAMEPAD_ADDED)
-        {
-            SDL_OpenGamepad(event.gdevice.which);
-        }
-
-        if (event.type == SDL_EVENT_KEY_DOWN)
-        {
-            switch (event.key.key)
-            {
-                case SDLK_ESCAPE:
-                    Stop();
-                    break;
-                case SDLK_LEFT:
-                case SDLK_A:
-                    m_blockManager.MoveFallingShapeHorizontal(-1);
-                    break;
-                case SDLK_RIGHT:
-                case SDLK_D:
-                    m_blockManager.MoveFallingShapeHorizontal(1);
-                    break;
-                case SDLK_UP:
-                case SDLK_W:
-                    m_blockManager.DropFallingShape();
-                    break;
-                case SDLK_DOWN:
-                case SDLK_S:
-                    m_blockManager.MoveFallingShapeDown();
-                    break;
-                case SDLK_SPACE:
-                    m_blockManager.RotateFallingShape();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
-        {
-            switch (event.gbutton.button)
-            {
-                case SDL_GAMEPAD_BUTTON_DPAD_LEFT:
-                    m_blockManager.MoveFallingShapeHorizontal(-1);
-                    break;
-                case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
-                    m_blockManager.MoveFallingShapeHorizontal(1);
-                    break;
-                case SDL_GAMEPAD_BUTTON_SOUTH:
-                    m_blockManager.RotateFallingShape();
-                default:
-                    break;
-            }
-        }
+        GetRenderer()->DrawBlockAtPos(xPositions[i] + 1, yPositions[i] + 1, blockPtrs[i]->colorID);
     }
 }
 
 void Game::Start()
 {
-    m_isRunning = true;
-
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
-    {
-        std::cerr << "Game::Start::SDL failed to Initialize." << std::endl;
-        Stop();
-    }
-
     m_blockManager.Init();
 
-    m_renderer.Init();
+    GetRenderer()->SetRendererSizeInGameDimensions(m_gameWidth, m_gameHeight);
 }
 
 void Game::Stop()
 {
-    m_renderer.Stop();
-    SDL_Quit();
-    m_isRunning = false;
+
 }
 
-void Game::Update()
+void Game::Update(const float deltaTime)
 {
-    const Uint32 currentTime = SDL_GetTicks();
-    m_deltaTime = (currentTime - m_lastTime) / 1000.0f;
-    m_lastTime = currentTime;
+    m_blockManager.Update(deltaTime);
 
-    ProcessInput();
-
-    m_blockManager.Update(m_deltaTime);
-
-    m_renderer.Update(m_deltaTime);
+    RenderBorders();
+    RenderBlocks();
 }
 
-bool Game::IsRunning() const
+Renderer* Game::GetRenderer() const
 {
-    return m_isRunning;
-}
-float Game::GetDeltaTime() const
-{
-    return m_deltaTime;
+    return m_application.GetRenderer();
 }
 
 BlockManager* Game::GetBlockManager()
@@ -123,9 +83,14 @@ BlockManager* Game::GetBlockManager()
     return &m_blockManager;
 }
 
-Renderer* Game::GetRenderer()
+Uint8 Game::GetGameWidth() const
 {
-    return &m_renderer;
+    return m_gameWidth;
+}
+
+Uint8 Game::GetGameHeight() const
+{
+    return m_gameHeight;
 }
 
 

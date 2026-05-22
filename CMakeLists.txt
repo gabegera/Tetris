@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 set(BUILD_SHARED_LIBS OFF)
+set(SDLTTF_VENDORED ON)
 
 include(FetchContent)
 
@@ -37,7 +38,33 @@ if (NOT SDL_image_FOUND)
     file(REMOVE_RECURSE "${CMAKE_SOURCE_DIR}/lib/SDL_image-tmp")
 endif ()
 
-add_executable(Tetris src/main.cpp
+find_package(SDL_ttf QUIET)
+if (NOT SDL_ttf_FOUND)
+    FetchContent_Declare(
+            SDL_ttf
+            GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
+            GIT_TAG release-3.2.2
+            SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/SDL_ttf/src"
+            BINARY_DIR "${CMAKE_BINARY_DIR}/lib/SDL_ttf/build"
+    )
+    FetchContent_MakeAvailable(SDL_ttf)
+    file(REMOVE_RECURSE "${CMAKE_SOURCE_DIR}/lib/SDL_ttf-tmp")
+endif ()
+
+find_package(nlohmann_json QUIET)
+if (NOT nlohmann_json_FOUND)
+    FetchContent_Declare(
+            nlohmann_json
+            GIT_REPOSITORY https://github.com/nlohmann/json.git
+            GIT_TAG v3.12.0
+            SOURCE_DIR "${CMAKE_SOURCE_DIR}/lib/nlohmann_json/src"
+            BINARY_DIR "${CMAKE_BINARY_DIR}/lib/nlohmann_json/build"
+    )
+    FetchContent_MakeAvailable(nlohmann_json)
+    file(REMOVE_RECURSE "${CMAKE_SOURCE_DIR}/lib/nlohmann_json-tmp")
+endif ()
+
+add_executable(Tetris WIN32 src/main.cpp
         src/Game.cpp
         src/Game.h
         src/BlockManager.cpp
@@ -45,6 +72,14 @@ add_executable(Tetris src/main.cpp
         src/Shapes.h
         src/Renderer.cpp
         src/Renderer.h
-        src/ColorPalettes.h)
+        src/ColorPalettes.h
+        src/Application.cpp
+        src/Application.h
+        src/Application.cpp
+        src/Application.h)
 
-target_link_libraries(Tetris PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image)
+target_link_libraries(Tetris PRIVATE
+        SDL3::SDL3-static
+        SDL3_image::SDL3_image
+        SDL3_ttf::SDL3_ttf
+        nlohmann_json::nlohmann_json)

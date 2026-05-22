@@ -1,37 +1,36 @@
 #pragma once
 
-#include <memory>
-
 #include "BlockManager.h"
-#include "Renderer.h"
-#include "SDL3/SDL.h"
+
+class Renderer;
+class Application;
 
 class Game
 {
 public:
-    Game();
+    explicit Game(Application& app, Uint8 gameWidth = 10, Uint8 gameHeight = 20);
     ~Game();
 
 protected:
+    // Game Width in number of blocks.
+    const Uint8 m_gameWidth;
+    // Game Height in number of blocks.
+    const Uint8 m_gameHeight;
+
+    Application& m_application;
     BlockManager m_blockManager;
-    Renderer m_renderer;
 
-    bool m_isRunning = false;
-
-    Uint32 m_lastTime = 0;
-    float m_deltaTime = 0.0f;
-
-    void ProcessInput();
+    void RenderBorders() const;
+    void RenderBlocks();
 
 public:
     void Start();
     void Stop();
-    void Update();
+    void Update(float deltaTime);
 
+    Renderer* GetRenderer() const;
     BlockManager* GetBlockManager();
-    Renderer* GetRenderer();
 
-    [[nodiscard]] bool IsRunning() const;
-
-    float GetDeltaTime() const;
+    Uint8 GetGameWidth() const;
+    Uint8 GetGameHeight() const;
 };

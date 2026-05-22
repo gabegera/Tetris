@@ -1,12 +1,12 @@
-#include "Game.h"
+#include "Application.h"
 
 int main()
 {
-    Game game;
-    game.Start();
+    Application app;
+    app.Start();
 
-    while (game.IsRunning())
+    while (app.IsRunning())
     {
-        game.Update();
+        app.Update();
     }
 }
