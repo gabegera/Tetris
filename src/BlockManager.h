@@ -25,8 +25,11 @@ protected:
 
     Uint16 m_colorIDCounter = 0;
 
+    // How many times in each direction the shape is allowed to be nudged when rotating.
+    const Uint8 m_maxNumberOfRotationNudges = 3;
+
     // How many seconds until the falling blocks get lowered.
-    float m_shapeFallingRate = 1.0f;
+    const float m_shapeFallingRate = 1.0f;
     float m_timeSinceShapeFell = 0.0f;
 
     std::vector<Shape> m_shapesBag;
@@ -59,10 +62,12 @@ protected:
     bool MoveBlockAtIndex(Uint16 index, Uint16 newIndex);
 
     // Creates a shape where the top left corner will reside at the target position.
-    void CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, bool increaseColorID = true);
+    bool CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape);
+    bool CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, const Uint8 colorID);
     // Creates a shape at the very top center of the game borders.
-    void CreateShapeAtTopCenter(const Shape& shape);
-    void CreateNextShapeInQueue();
+    bool CreateShapeAtTopCenter(const Shape& shape);
+    // Creates the next shape in queue at the very top center of the game borders.
+    bool CreateNextShapeInQueue();
 
     void ClearLine(Uint8 yPos);
 
@@ -116,6 +121,8 @@ public:
     bool IsIndexAtRightBorder(Uint16 index) const;
 
     bool CanLineBeCleared(Uint8 yPos) const;
+
+    bool CanShapeBeCreatedAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape) const;
 
     /**
      * @returns Vector containing Y positions of all clearable lines in the game.
