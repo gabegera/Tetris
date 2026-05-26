@@ -8,6 +8,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(BUILD_SHARED_LIBS OFF)
 set(SDLTTF_VENDORED ON)
 
+# set_target_properties(lib PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --bind")
+
 include(FetchContent)
 
 find_package(SDL QUIET)

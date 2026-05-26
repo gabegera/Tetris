@@ -473,6 +473,26 @@ void BlockManager::GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::ve
     blockPtrs = outPtrs;
 }
 
+const Shape& BlockManager::GetFallingShape() const
+{
+    return m_fallingShape;
+}
+
+Uint8 BlockManager::GetBlockColorIDAtPos(const Uint8 xPos, const Uint8 yPos) const
+{
+    return GetBlockColorIDAtIndex(GetBlockIndexFromPos(xPos, yPos));
+}
+
+Uint8 BlockManager::GetBlockColorIDAtIndex(const Uint16 index) const
+{
+    return IsBlockAtIndex(index) ? m_blocks[index]->colorID : 0;
+}
+
+Uint8 BlockManager::GetFallingShapeColorID() const
+{
+    return GetBlockColorIDAtIndex(m_fallingBlockIndices.front());
+}
+
 bool BlockManager::IsBlockAtPos(const Uint8 xPos, const Uint8 yPos) const
 {
     return IsBlockAtIndex(GetBlockIndexFromPos(xPos, yPos));
@@ -645,6 +665,8 @@ bool BlockManager::CanShapeBeCreatedAtPos(const Uint8 xPos, const Uint8 yPos, co
 {
     for (int i = 0; i < shape.blocks.size(); i++)
     {
+        if (shape.blocks[i] == ' ') continue;
+
         const Uint8 shapeBlockXPos = xPos + (i % shape.width);
         const Uint8 shapeBlockYPos = yPos + std::floor((i * 1.0f) / shape.width);
         if (xPos + shape.width > m_game.GetGameWidth() || yPos + shape.GetHeight() > m_game.GetGameHeight()
@@ -655,6 +677,36 @@ bool BlockManager::CanShapeBeCreatedAtPos(const Uint8 xPos, const Uint8 yPos, co
     }
 
     return true;
+}
+
+void BlockManager::GetShapeTargetPos(Uint8& outXPos, Uint8& outYPos)
+{
+    Uint8 cornerXPos = m_game.GetGameWidth();
+    Uint8 cornerYPos = m_game.GetGameHeight();
+
+    for (const Uint16 index : m_fallingBlockIndices)
+    {
+        const Uint8 xPos = GetBlockXPosFromIndex(index);
+        const Uint8 yPos = GetBlockYPosFromIndex(index);
+
+        if (xPos < cornerXPos) cornerXPos = xPos;
+        if (yPos < cornerYPos) cornerYPos = yPos;
+    }
+
+    Uint8 largestYPos = cornerYPos;
+    for (int i = 1; i < m_game.GetGameHeight() - cornerYPos; i++)
+    {
+        if (CanShapeBeCreatedAtPos(cornerXPos, cornerYPos + i, m_fallingShape))
+        {
+            largestYPos = cornerYPos + i;
+        }
+        else
+        {
+            outXPos = cornerXPos;
+            outYPos = largestYPos;
+            return;
+        }
+    }
 }
 
 std::vector<Uint8> BlockManager::GetClearableLines() const

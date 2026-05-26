@@ -5,6 +5,7 @@
 #include "ColorPalettes.h"
 #include "SDL3/SDL.h"
 
+struct Shape;
 struct Block;
 class Application;
 
@@ -24,10 +25,12 @@ protected:
     const unsigned int m_blockResolution = 16;
 
     SDL_Texture* m_blockTexture = nullptr;
+    SDL_Texture* m_transparentBlockTexture = nullptr;
 
     ColorPalette m_colorPalette = ColorPalettes::Classic;
 
     void SetBlockTexture(const std::string& texturePath);
+    void SetTransparentBlockTexture(const std::string& texturePath);
 
     void SetColorPalette(const ColorPalette& newPalette);
 
@@ -43,6 +46,9 @@ public:
 
     void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, Uint16 colorID) const;
     void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, Color color) const;
+
+    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, Uint16 colorID) const;
+    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, Color color) const;
 
     SDL_Window* GetWindow() const;
     SDL_Renderer* GetSDLRenderer() const;

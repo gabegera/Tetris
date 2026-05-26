@@ -13,3 +13,4 @@ CMakeUserPresets.json
 lib/
 bin/
 .idea/
+cmake-build-debug/

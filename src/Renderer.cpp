@@ -16,8 +16,15 @@ Renderer::~Renderer()
 
 void Renderer::SetBlockTexture(const std::string& texturePath)
 {
-    SDL_Surface* blockSurface = SDL_LoadSurface("../res/Tetris_Block.png");
+    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.c_str());
     m_blockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
+    SDL_DestroySurface(blockSurface);
+}
+
+void Renderer::SetTransparentBlockTexture(const std::string& texturePath)
+{
+    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.c_str());
+    m_transparentBlockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
     SDL_DestroySurface(blockSurface);
 }
 
@@ -45,6 +52,35 @@ void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, 
     SDL_SetTextureColorMod(m_blockTexture, 255, 255, 255);
 }
 
+void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape, const Uint16 colorID) const
+{
+    const Uint16 index = colorID > 0 ? colorID % m_colorPalette.blockColors.size() : 0;
+    DrawShapeGuideAtPos(xPos, yPos, shape, m_colorPalette.blockColors[index]);
+}
+
+void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape, const Color color) const
+{
+    SDL_FRect block;
+    block.w = m_blockResolution;
+    block.h = m_blockResolution;
+
+    for (int i = 0; i < shape.blocks.size(); i++)
+    {
+        if (shape.blocks[i] != ' ')
+        {
+            block.x = (xPos + (i % shape.width)) * m_blockResolution;
+            block.x += m_blockResolution; // offset the border.
+            block.y = (yPos + std::floor((i * 1.0f) / shape.width)) * m_blockResolution;
+            block.y += m_blockResolution;
+            SDL_SetTextureColorMod(m_transparentBlockTexture, color.red, color.green, color.blue);
+            SDL_SetTextureAlphaMod(m_transparentBlockTexture, 150);
+            SDL_RenderTexture(m_renderer, m_transparentBlockTexture, nullptr, &block);
+        }
+    }
+
+    SDL_SetTextureColorMod(m_transparentBlockTexture, 255, 255, 255);
+}
+
 void Renderer::Init()
 {
     m_window = SDL_CreateWindow("Tetris", 500, 1000, SDL_WINDOW_RESIZABLE);
@@ -63,7 +99,9 @@ void Renderer::Init()
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
     SetBlockTexture("../res/Tetris_Block.png");
+    SetTransparentBlockTexture("../res/Transparent_Tetris_Block.png");
     SDL_SetTextureScaleMode(m_blockTexture, SDL_SCALEMODE_PIXELART);
+    SDL_SetTextureScaleMode(m_transparentBlockTexture, SDL_SCALEMODE_PIXELART);
 }
 
 void Renderer::Stop() const

@@ -88,6 +88,12 @@ public:
     void GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
     void GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
 
+    const Shape& GetFallingShape() const;
+
+    Uint8 GetBlockColorIDAtPos(Uint8 xPos, Uint8 yPos) const;
+    Uint8 GetBlockColorIDAtIndex(Uint16 index) const;
+    Uint8 GetFallingShapeColorID() const;
+
     bool IsBlockAtPos(Uint8 xPos, Uint8 yPos) const;
     bool IsBlockAtIndex(Uint16 index) const;
 
@@ -124,6 +130,8 @@ public:
     bool CanLineBeCleared(Uint8 yPos) const;
 
     bool CanShapeBeCreatedAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape) const;
+
+    void GetShapeTargetPos(Uint8& outXPos, Uint8& outYPos);
 
     /**
      * @returns Vector containing Y positions of all clearable lines in the game.

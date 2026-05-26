@@ -53,6 +53,14 @@ void Game::RenderBlocks()
     }
 }
 
+void Game::RenderShapeGuide()
+{
+    Uint8 xPos;
+    Uint8 yPos;
+    m_blockManager.GetShapeTargetPos(xPos, yPos);
+    GetRenderer()->DrawShapeGuideAtPos(xPos, yPos, m_blockManager.GetFallingShape(), m_blockManager.GetFallingShapeColorID());
+}
+
 void Game::Start()
 {
     m_blockManager.Init();
@@ -70,6 +78,7 @@ void Game::Update(const float deltaTime)
     m_blockManager.Update(deltaTime);
 
     RenderBorders();
+    RenderShapeGuide();
     RenderBlocks();
 }
 

@@ -22,6 +22,7 @@ protected:
 
     void RenderBorders() const;
     void RenderBlocks();
+    void RenderShapeGuide();
 
 public:
     void Start();
