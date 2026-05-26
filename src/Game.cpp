@@ -82,6 +82,11 @@ void Game::Update(const float deltaTime)
     RenderBlocks();
 }
 
+void Game::TriggerGameOver()
+{
+    m_blockManager.Reset();
+}
+
 Renderer* Game::GetRenderer() const
 {
     return m_application.GetRenderer();

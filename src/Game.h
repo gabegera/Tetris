@@ -29,6 +29,10 @@ public:
     void Stop();
     void Update(float deltaTime);
 
+    void Restart();
+
+    void TriggerGameOver();
+
     Renderer* GetRenderer() const;
     BlockManager* GetBlockManager();
 

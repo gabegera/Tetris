@@ -192,6 +192,12 @@ void Application::Update()
     m_renderer.Update(m_deltaTime);
 }
 
+void Application::RestartGame()
+{
+    m_game.reset();
+    m_game = std::make_unique<Game>(*this);
+}
+
 bool Application::IsRunning() const
 {
     return m_isRunning;

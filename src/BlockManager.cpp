@@ -169,13 +169,19 @@ bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Sh
 {
     if (shape.width < 1)
     {
-        std::cout << "BlockManager::CreateShape::Input Shape has an invalid width, must be greater than 0." << std::endl;
+        std::cout << "BlockManager::CreateShapeAtPos::Input Shape has an invalid width, must be greater than 0." << std::endl;
         return false;
     }
 
     if (shape.blocks.size() < 1)
     {
-        std::cout << "BlockManager::CreateShape::The shape doesn't have any blocks." << std::endl;
+        std::cout << "BlockManager::CreateShapeAtPos::The shape doesn't have any blocks." << std::endl;
+        return false;
+    }
+
+    if (!CanShapeBeCreatedAtPos(xPos, yPos, shape))
+    {
+        std::cout << "BlockManager::CreateShapeAtPos::Shape is obstructed." << std::endl;
         return false;
     }
 
@@ -197,7 +203,14 @@ bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Sh
 bool BlockManager::CreateShapeAtTopCenter(const Shape& shape)
 {
     const unsigned int spawnXPos = std::ceil(m_game.GetGameWidth() / 2.0f) - shape.width + 1; // Sets the X position of spawn as close to center as possible.
-    return CreateShapeAtPos(spawnXPos, 0, shape);
+    if (!CreateShapeAtPos(spawnXPos, 0, shape))
+    {
+        std::cout << "BlockManager::CreateShapeAtTopCenter::Can't create shape, obstructed. Triggering Game Over." << std::endl;
+        m_game.TriggerGameOver();
+        return false;
+    }
+
+    return true;
 }
 
 bool BlockManager::CreateNextShapeInQueue()
@@ -233,7 +246,7 @@ void BlockManager::ClearLine(const Uint8 yPos)
     }
 }
 
-void BlockManager::ClearAllLines()
+void BlockManager::ClearClearableLines()
 {
     std::vector<Uint8> lines = GetClearableLines();
     std::ranges::sort(lines);
@@ -268,6 +281,19 @@ void BlockManager::Update(const float deltaTime)
         MoveShapeDown();
         m_timeSinceShapeFell = 0;
     }
+}
+
+void BlockManager::Reset()
+{
+    std::ranges::fill(m_blocks, nullptr);
+    m_fallingBlockIndices.clear();
+    m_colorIDCounter = 0;
+    m_shapesBag.clear();
+    m_shapesQueue.clear();
+    m_shapesQueue.reserve(ClassicShapes::numOfShapes);
+    m_timeSinceShapeFell = 0.0f;
+
+    CreateNextShapeInQueue();
 }
 
 void BlockManager::MoveShapeLeft()
@@ -316,13 +342,13 @@ bool BlockManager::MoveShapeDown()
 
     for (const Uint16 fallingBlockIndex : m_fallingBlockIndices)
     {
-        if (GetBlockYPosFromIndex(fallingBlockIndex) == m_game.GetGameHeight() - 1
+        if (IsBlockAtBottomBorder(GetBlockYPosFromIndex(fallingBlockIndex))
             || (IsBlockBelowIndex(fallingBlockIndex))
                 && !IsFallingBlockBelowIndex(fallingBlockIndex))
         {
             m_fallingBlockIndices.clear();
             CreateNextShapeInQueue();
-            ClearAllLines();
+            ClearClearableLines();
             std::cout << "BlockManager::MoveShapeDown::Can't move down, obstructed." << std::endl;
             return false;
         }

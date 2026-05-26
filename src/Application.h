@@ -38,6 +38,8 @@ public:
     void Stop();
     void Update();
 
+    void RestartGame();
+
     bool IsRunning() const;
 
     bool IsGameRunning() const;

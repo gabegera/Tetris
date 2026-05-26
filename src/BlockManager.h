@@ -70,7 +70,7 @@ protected:
     bool CreateNextShapeInQueue();
 
     void ClearLine(Uint8 yPos);
-    void ClearAllLines();
+    void ClearClearableLines();
 
     void SortFallingBlockIndicesAscending();
     void SortFallingBlockIndicesDescending();
@@ -78,6 +78,8 @@ protected:
 public:
     void Init();
     void Update(float deltaTime);
+
+    void Reset();
 
     void MoveShapeLeft();
     void MoveShapeRight();
