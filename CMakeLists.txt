@@ -8,8 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(BUILD_SHARED_LIBS OFF)
 set(SDLTTF_VENDORED ON)
 
-# set_target_properties(lib PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --bind")
-
 include(FetchContent)
 
 find_package(SDL QUIET)
@@ -81,6 +79,10 @@ add_executable(Tetris WIN32 src/main.cpp
         src/Application.h)
 
 target_link_libraries(Tetris PRIVATE
+        -static
+        gcc
+        stdc++
+        winpthread
         SDL3::SDL3-static
         SDL3_image::SDL3_image
         SDL3_ttf::SDL3_ttf
