@@ -224,12 +224,23 @@ void BlockManager::ClearLine(const Uint8 yPos)
         DeleteBlockAtIndex(startingIndex + i);
     }
 
-    for (int i = m_blocks.size() - 1; i >= 0; i--)
+    for (int i = GetBlockIndexFromPos(m_game.GetGameWidth() - 1, yPos + 1); i >= 0; i--)
     {
-        if (IsBlockAtIndex(i) && !IsBlockAtBottomBorder(GetBlockYPosFromIndex(i)))
+        if (IsBlockAtIndex(i))
         {
             MoveBlockAtIndex(i, i + m_game.GetGameWidth());
         }
+    }
+}
+
+void BlockManager::ClearAllLines()
+{
+    std::vector<Uint8> lines = GetClearableLines();
+    std::ranges::sort(lines);
+
+    for (const Uint8 line : lines)
+    {
+        ClearLine(line);
     }
 }
 
@@ -311,10 +322,7 @@ bool BlockManager::MoveShapeDown()
         {
             m_fallingBlockIndices.clear();
             CreateNextShapeInQueue();
-            for (const Uint8 line : GetClearableLines())
-            {
-                ClearLine(line);
-            }
+            ClearAllLines();
             std::cout << "BlockManager::MoveShapeDown::Can't move down, obstructed." << std::endl;
             return false;
         }

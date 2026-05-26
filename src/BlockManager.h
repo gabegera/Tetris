@@ -70,6 +70,7 @@ protected:
     bool CreateNextShapeInQueue();
 
     void ClearLine(Uint8 yPos);
+    void ClearAllLines();
 
     void SortFallingBlockIndicesAscending();
     void SortFallingBlockIndicesDescending();
