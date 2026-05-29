@@ -4,6 +4,7 @@
 
 #include "Game.h"
 #include "SDL3/SDL_events.h"
+#include "UI/MainMenu.h"
 
 Application::Application() : m_renderer(*this)
 {
@@ -98,7 +99,10 @@ void Application::ProcessEvents()
 
 void Application::OnExitInput()
 {
-    Stop();
+    if (m_game)
+    {
+        StopGame();
+    }
 }
 
 void Application::OnLeftInput()
@@ -123,6 +127,10 @@ void Application::OnUpInput()
     {
         m_game->GetBlockManager()->DropShape();
     }
+    else if (m_mainMenu)
+    {
+        m_mainMenu->ReceiveUpInput();
+    }
 }
 
 void Application::OnDownInput()
@@ -130,6 +138,10 @@ void Application::OnDownInput()
     if (IsGameRunning())
     {
         m_game->GetBlockManager()->MoveShapeDown();
+    }
+    else if (m_mainMenu)
+    {
+        m_mainMenu->ReceiveDownInput();
     }
 }
 
@@ -139,12 +151,24 @@ void Application::OnRotateInput()
     {
         m_game->GetBlockManager()->RotateShape();
     }
+    else if (m_mainMenu)
+    {
+        m_mainMenu->ReceiveSelectInput();
+    }
+}
+
+void Application::StartMainMenu()
+{
+    m_mainMenu = std::make_unique<MainMenu>(*this);
+    m_mainMenu->Init();
 }
 
 void Application::StartGame()
 {
     m_game = std::make_unique<Game>(*this);
     m_game->Start();
+
+    m_mainMenu->SetVisibility(false);
 }
 
 void Application::StopGame()
@@ -154,6 +178,9 @@ void Application::StopGame()
         m_game->Stop();
         m_game = nullptr;
     }
+
+    m_mainMenu->SetVisibility(true);
+    m_renderer.SetRendererSizeToWindowSize();
 }
 
 void Application::Start()
@@ -166,7 +193,9 @@ void Application::Start()
 
     m_renderer.Init();
 
-    StartGame();
+    StartMainMenu();
+
+    // StartGame();
 }
 
 void Application::Stop()
@@ -183,6 +212,11 @@ void Application::Update()
     ProcessEvents();
 
     m_renderer.ClearRenderer();
+
+    if (m_mainMenu)
+    {
+        m_mainMenu->Update(m_deltaTime);
+    }
 
     if (m_game)
     {

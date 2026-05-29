@@ -80,6 +80,8 @@ void Game::Update(const float deltaTime)
     RenderBorders();
     RenderShapeGuide();
     RenderBlocks();
+
+    // m_application.GetRenderer()->DrawText("Points: ", 10, 10);
 }
 
 void Game::TriggerGameOver()

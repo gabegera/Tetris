@@ -237,7 +237,7 @@ void BlockManager::ClearLine(const Uint8 yPos)
         DeleteBlockAtIndex(startingIndex + i);
     }
 
-    for (int i = GetBlockIndexFromPos(m_game.GetGameWidth() - 1, yPos + 1); i >= 0; i--)
+    for (int i = GetBlockIndexFromPos(m_game.GetGameWidth() - 1, yPos - 1); i >= 0; i--)
     {
         if (IsBlockAtIndex(i))
         {

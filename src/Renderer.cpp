@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Application.h"
+#include "UI/Button.h"
 
 Renderer::Renderer(Application& app) : m_application(app)
 {
@@ -14,23 +15,33 @@ Renderer::~Renderer()
 
 }
 
-void Renderer::SetBlockTexture(const std::string& texturePath)
+void Renderer::SetBlockTexture(const std::filesystem::path& texturePath)
 {
-    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.c_str());
+    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.generic_string().c_str());
     m_blockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
     SDL_DestroySurface(blockSurface);
 }
 
-void Renderer::SetTransparentBlockTexture(const std::string& texturePath)
+void Renderer::SetTransparentBlockTexture(const std::filesystem::path& texturePath)
 {
-    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.c_str());
+    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.generic_string().c_str());
     m_transparentBlockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
     SDL_DestroySurface(blockSurface);
+}
+
+void Renderer::SetFont(const std::filesystem::path& fontPath)
+{
+    m_font = TTF_OpenFont(fontPath.generic_string().c_str(), 16);
 }
 
 void Renderer::SetColorPalette(const ColorPalette& newPalette)
 {
     m_colorPalette = newPalette;
+}
+
+void Renderer::ResetDrawColor() const
+{
+    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 }
 
 void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Uint16 colorID) const
@@ -81,6 +92,104 @@ void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Sha
     SDL_SetTextureColorMod(m_transparentBlockTexture, 255, 255, 255);
 }
 
+void Renderer::DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, const Color color,
+    const Uint32 size, const HorizontalAlignment horizontalAlignment, const VerticalAlignment verticalAlignment)
+{
+    TTF_SetFontSize(m_font, size);
+    TTF_Text* text = TTF_CreateText(m_textEngine, m_font, inString.c_str(), sizeof(inString));
+    TTF_SetTextColor(text, color.red, color.green, color.blue, 255);
+
+    int textWidth;
+    int textHeight;
+    TTF_GetTextSize(text, &textWidth, &textHeight);
+    switch (horizontalAlignment)
+    {
+        case HorizontalAlignment::Left:
+            break;
+        case HorizontalAlignment::Center:
+            xPos -= textWidth / 2;
+            break;
+        case HorizontalAlignment::Right:
+            xPos -= textWidth;
+            break;
+    }
+
+    switch (verticalAlignment)
+    {
+        case VerticalAlignment::Top:
+            yPos -= textHeight;
+            break;
+        case VerticalAlignment::Center:
+            yPos -= textHeight / 2;
+            break;
+        case VerticalAlignment::Bottom:
+            break;
+    }
+
+    TTF_DrawRendererText(text, xPos, yPos);
+}
+
+void Renderer::DrawButton(const Button* button)
+{
+    if (!button)
+    {
+        std::cerr << "Renderer::DrawButton::Invalid button pointer." << std::endl;
+        return;
+    }
+
+    SDL_FRect buttonRectangle;
+    buttonRectangle.w = button->GetWidth();
+    buttonRectangle.h = button->GetHeight();
+    switch (button->GetHorizontalAlignment())
+    {
+        case HorizontalAlignment::Left:
+            buttonRectangle.x = button->GetXPos();
+            break;
+        case HorizontalAlignment::Center:
+            buttonRectangle.x = button->GetXPos() - button->GetWidth() / 2;
+            break;
+        case HorizontalAlignment::Right:
+            buttonRectangle.x = button->GetXPos() - button->GetWidth();
+            break;
+    }
+
+    switch (button->GetVerticalAlignment())
+    {
+        case VerticalAlignment::Top:
+            buttonRectangle.y = button->GetYPos() - button->GetHeight();
+            break;
+        case VerticalAlignment::Center:
+            buttonRectangle.y = button->GetYPos() - button->GetHeight() / 2;
+            break;
+        case VerticalAlignment::Bottom:
+            buttonRectangle.y = button->GetYPos();
+            break;
+    }
+
+    auto [backgroundRed, backgroundGreen, backgroundBlue] =
+        button->IsSelected() ? button->GetHighlightedBackgroundColor() : button->GetBackgroundColor();
+    SDL_SetRenderDrawColor(m_renderer, backgroundRed, backgroundGreen, backgroundBlue, 255);
+    SDL_RenderFillRect(m_renderer, &buttonRectangle);
+
+    auto [outlineRed, outlineGreen, outlineBlue] =
+        button->IsSelected() ? button->GetHighlightedOutlineColor() : button->GetOutlineColor();
+    SDL_SetRenderDrawColor(m_renderer, outlineRed, outlineGreen, outlineBlue, 255);
+    SDL_RenderRect(m_renderer, &buttonRectangle);
+
+    ResetDrawColor();
+
+    DrawText
+    (
+        button->GetButtonText(),
+        button->GetXPos(),
+        button->GetYPos(),
+        button->GetTextColor(),
+        button->GetFontSize(),
+        button->GetHorizontalAlignment(),
+        button->GetVerticalAlignment()
+    );
+}
+
 void Renderer::Init()
 {
     m_window = SDL_CreateWindow("Tetris", 500, 1000, SDL_WINDOW_RESIZABLE);
@@ -88,18 +197,39 @@ void Renderer::Init()
     {
         std::cerr << "Renderer::Init::SDL failed to Create Window." << std::endl;
         m_application.Stop();
+        return;
     }
 
-    m_renderer = SDL_CreateRenderer(m_window, NULL);
+    m_renderer = SDL_CreateRenderer(m_window, nullptr);
     if (!m_renderer)
     {
         std::cerr << "Renderer::Init::SDL failed to Create Renderer." << std::endl;
         m_application.Stop();
+        return;
     }
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
-    SetBlockTexture("../res/Tetris_Block.png");
-    SetTransparentBlockTexture("../res/Transparent_Tetris_Block.png");
+    if (!TTF_Init())
+    {
+        std::cerr << "Renderer::Init::SDL-ttf failed to initialize." << std::endl;
+        m_application.Stop();
+        return;
+    }
+
+    m_textEngine = TTF_CreateRendererTextEngine(m_renderer);
+    if (!m_textEngine)
+    {
+        std::cerr << "Renderer::Init::SDL failed to Create Text Renderer Engine" << std::endl;
+        m_application.Stop();
+        return;
+    }
+
+    SDL_SetRenderVSync(m_renderer, 1);
+
+    SetBlockTexture(m_blockTexturePath);
+    SetTransparentBlockTexture(m_transparentBlockTexturePath);
+    SetFont(m_defaultFontPath);
+
     SDL_SetTextureScaleMode(m_blockTexture, SDL_SCALEMODE_PIXELART);
     SDL_SetTextureScaleMode(m_transparentBlockTexture, SDL_SCALEMODE_PIXELART);
 }
@@ -113,6 +243,14 @@ void Renderer::Stop() const
 void Renderer::Update(const float deltaTime) const
 {
     SDL_RenderPresent(m_renderer);
+}
+
+void Renderer::SetRendererSizeToWindowSize() const
+{
+    int width;
+    int height;
+    SDL_GetWindowSize(m_window, &width, &height);
+    SDL_SetRenderLogicalPresentation(m_renderer, width, height, SDL_LOGICAL_PRESENTATION_INTEGER_SCALE);
 }
 
 void Renderer::SetRendererSizeInPixels(const Uint16 width, const Uint16 height) const
@@ -143,4 +281,29 @@ SDL_Renderer* Renderer::GetSDLRenderer() const
 const ColorPalette& Renderer::GetColorPalette() const
 {
     return m_colorPalette;
+}
+
+Uint32 Renderer::GetRenderWidth() const
+{
+    int width;
+    if (!SDL_GetCurrentRenderOutputSize(m_renderer, &width, nullptr))
+    {
+        return 0;
+    }
+    return width;
+}
+
+Uint32 Renderer::GetRenderHeight() const
+{
+    int height;
+    if (!SDL_GetCurrentRenderOutputSize(m_renderer, nullptr, &height))
+    {
+        return 0;
+    }
+    return height;
+}
+
+TTF_Font* Renderer::GetDefaultFont() const
+{
+    return m_font;
 }

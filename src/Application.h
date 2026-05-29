@@ -4,6 +4,8 @@
 #include "Renderer.h"
 #include "SDL3/SDL_stdinc.h"
 
+class MainMenu;
+
 class Application
 {
 public:
@@ -11,6 +13,7 @@ public:
     ~Application();
 
 protected:
+    std::unique_ptr<MainMenu> m_mainMenu;
     std::unique_ptr<Game> m_game;
     Renderer m_renderer;
 
@@ -30,14 +33,15 @@ protected:
     void OnDownInput();
     void OnRotateInput();
 
-    void StartGame();
-    void StopGame();
+    void StartMainMenu();
 
 public:
     void Start();
     void Stop();
     void Update();
 
+    void StartGame();
+    void StopGame();
     void RestartGame();
 
     bool IsRunning() const;
