@@ -29,7 +29,7 @@ protected:
     const Uint8 m_maxNumberOfRotationNudges = 3;
 
     // How many seconds until the falling blocks get lowered.
-    const float m_shapeFallingRate = 1.0f;
+    const float m_shapeFallingRate = 0.5f;
     float m_timeSinceShapeFell = 0.0f;
 
     std::vector<Shape> m_shapesBag;

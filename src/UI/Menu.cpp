@@ -4,6 +4,7 @@
 
 #include "../Application.h"
 #include "Button.h"
+#include "TextBlock.h"
 
 Menu::Menu(Application& app) : m_application(app)
 {
@@ -15,89 +16,132 @@ Menu::~Menu()
 
 }
 
+TextBlock* Menu::CreateTextBlock()
+{
+    TextBlock* newTextBlock = dynamic_cast<TextBlock*>(m_children.emplace_back(std::make_unique<TextBlock>(*this)).get());
+
+    if (!newTextBlock)
+    {
+        std::cerr << "Menu::CreateTextBlock::Failed to create Text Block." << std::endl;
+        m_application.Stop();
+        return nullptr;
+    }
+
+    return newTextBlock;
+}
+
 Button* Menu::CreateButton()
 {
-    Button* newButton = m_buttons.emplace_back(std::make_unique<Button>(*this)).get();
+    Button* newButton = dynamic_cast<Button*>(m_children.emplace_back(std::make_unique<Button>(*this)).get());
+
+    if (!newButton)
+    {
+        std::cerr << "Menu::CreateButton::Failed to create Button." << std::endl;
+        m_application.Stop();
+        return nullptr;
+    }
+
     newButton->SetWidth(m_defaultButtonWidth);
     newButton->SetHeight(m_defaultButtonHeight);
     return newButton;
 }
 
-void Menu::RenderButtons() const
+void Menu::SelectNextElement()
 {
-    for (const std::unique_ptr<Button>& button : m_buttons)
+    if (m_children.empty()) return;
+
+    m_selectedUIElementIndex++;
+
+    for (int i = 0; i < m_children.size(); i++)
     {
-        GetRenderer()->DrawButton(button.get());
+        if (m_selectedUIElementIndex >= m_children.size()) m_selectedUIElementIndex = 0;
+
+        if (m_children[m_selectedUIElementIndex].get()->IsSelectable())
+        {
+            return;
+        }
+
+        m_selectedUIElementIndex++;
     }
 }
 
-void Menu::SelectNextButton()
+void Menu::SelectPreviousElement()
 {
-    if (m_buttons.empty()) return;
+    if (m_children.empty()) return;
 
-    if (m_selectedButtonIndex >= m_buttons.size() - 1)
+    m_selectedUIElementIndex--;
+
+    for (int i = 0; i < m_children.size(); i++)
     {
-        m_selectedButtonIndex = 0;
-    }
-    else m_selectedButtonIndex++;
-}
+        if (m_selectedUIElementIndex >= m_children.size()) m_selectedUIElementIndex = m_children.size() - 1;
 
-void Menu::SelectPreviousButton()
-{
-    if (m_buttons.empty()) return;
+        if (m_children[m_selectedUIElementIndex].get()->IsSelectable())
+        {
+            return;
+        }
 
-    if (m_selectedButtonIndex == 0)
-    {
-        m_selectedButtonIndex = m_buttons.size() - 1;
+        m_selectedUIElementIndex--;
     }
-    else m_selectedButtonIndex--;
 }
 
 void Menu::Init()
 {
-
+    for (int i = 0; i < m_children.size(); i++)
+    {
+        try
+        {
+            if (m_children.at(i)->IsSelectable())
+            {
+                m_selectedUIElementIndex = i;
+                break;
+            }
+        } catch (const std::out_of_range& error) {}
+    }
 }
 
 void Menu::Update(const float deltaTime)
 {
     if (!IsVisible()) return;
 
-    RenderButtons();
+    for (const auto& child : m_children)
+    {
+        child.get()->Update(deltaTime);
+    }
 }
 
 void Menu::ReceiveUpInput()
 {
-    SelectPreviousButton();
+    SelectPreviousElement();
 }
 
 void Menu::ReceiveDownInput()
 {
-    SelectNextButton();
+    SelectNextElement();
 }
 
 void Menu::ReceiveLeftInput()
 {
-    if (m_buttons.empty()) return;
+    if (m_children.empty()) return;
 }
 
 void Menu::ReceiveRightInput()
 {
-    if (m_buttons.empty()) return;
+    if (m_children.empty()) return;
 }
 
 void Menu::ReceiveSelectInput()
 {
-    if (m_buttons.empty()) return;
+    if (m_children.empty()) return;
 
     try
     {
-        Button* button = m_buttons.at(m_selectedButtonIndex).get();
-        if (!button) return;
-        button->PressButton();
+        UIElement* selectableElement = m_children.at(m_selectedUIElementIndex).get();
+        if (!selectableElement) return;
+        selectableElement->TriggerElement();
     }
     catch (const std::out_of_range& error)
     {
-        std::cerr << "Menu::ReceiveSelectInput::Selected button out of range at index: " << m_selectedButtonIndex << std::endl;
+        std::cerr << "Menu::ReceiveSelectInput::Selected element out of range at index: " << m_selectedUIElementIndex << std::endl;
     }
 }
 
@@ -111,11 +155,11 @@ bool Menu::IsVisible() const
     return m_isVisible;
 }
 
-Button* Menu::GetSelectedButton() const
+const UIElement* Menu::GetSelectedElement() const
 {
     try
     {
-        return m_buttons.at(m_selectedButtonIndex).get();
+        return m_children.at(m_selectedUIElementIndex).get();
     }
     catch (const std::out_of_range& error)
     {

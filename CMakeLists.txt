@@ -69,6 +69,10 @@ add_executable(Tetris WIN32 src/main.cpp
         src/UI/Button.h
         src/UI/MainMenu.cpp
         src/UI/MainMenu.h
+        src/UI/UIElement.cpp
+        src/UI/UIElement.h
+        src/UI/TextBlock.cpp
+        src/UI/TextBlock.h
 )
 
 target_link_libraries(Tetris PRIVATE

@@ -5,7 +5,7 @@
 #include "../Application.h"
 #include "Menu.h"
 
-Button::Button(Menu& menu) : m_menu(menu)
+Button::Button(Menu& menu) : UIElement(menu, true)
 {
 
 }
@@ -15,21 +15,15 @@ Button::~Button()
 
 }
 
-void Button::RenderButton()
+void Button::Render()
 {
-    GetRenderer()->DrawButton(this);
-}
+    const Color backgroundColor = IsSelected() ? m_highlightedBackgroundColor : m_backgroundColor;
+    const Color outlineColor = IsSelected() ? m_highlightedOutlineColor : m_outlineColor;
+    GetRenderer()->DrawRectangle(m_width, m_height, GetXPos(), GetYPos(), backgroundColor, outlineColor,
+        m_horizontalAlignment, m_verticalAlignment);
 
-void Button::Init()
-{
-
-}
-
-void Button::Update(const float deltaTime)
-{
-    if (!IsVisible()) return;
-
-    RenderButton();
+    GetRenderer()->DrawText(m_buttonText, GetXPos(), GetYPos(), m_textColor, m_fontSize,
+        m_horizontalAlignment, m_verticalAlignment);
 }
 
 void Button::BindFunction(const std::function<void()>& inFunction)
@@ -37,7 +31,7 @@ void Button::BindFunction(const std::function<void()>& inFunction)
     m_boundFunction = inFunction;
 }
 
-void Button::PressButton()
+void Button::TriggerElement()
 {
     try
     {
@@ -47,11 +41,6 @@ void Button::PressButton()
     {
         std::cerr << "Button::PressButton::Invalid Bound Function." << std::endl;
     }
-}
-
-bool Button::SetVisibility(const bool input)
-{
-    return m_isVisible = input;
 }
 
 void Button::SetButtonText(const std::string& inText)
@@ -89,44 +78,9 @@ void Button::SetHeight(const Uint32 inHeight)
     m_height = inHeight;
 }
 
-void Button::SetXPos(const Uint32 inXPos)
-{
-    m_xPos = inXPos;
-}
-
-void Button::SetYPos(const Uint32 inYPos)
-{
-    m_yPos = inYPos;
-}
-
-void Button::SetHorizontalAlignment(const HorizontalAlignment inAlignment)
-{
-    m_horizontalAlignment = inAlignment;
-}
-
-void Button::SetVerticalAlignment(const VerticalAlignment inAlignment)
-{
-    m_verticalAlignment = inAlignment;
-}
-
-Renderer* Button::GetRenderer() const
-{
-    return m_menu.GetRenderer();
-}
-
-Menu* Button::GetOwningMenu() const
-{
-    return &m_menu;
-}
-
-bool Button::IsVisible() const
-{
-    return m_isVisible;
-}
-
 bool Button::IsSelected() const
 {
-    return m_menu.GetSelectedButton() == this;
+    return m_menu.GetSelectedElement() == this;
 }
 
 const std::string& Button::GetButtonText() const
@@ -174,22 +128,3 @@ Uint32 Button::GetHeight() const
     return m_height;
 }
 
-Uint32 Button::GetXPos() const
-{
-    return m_xPos;
-}
-
-Uint32 Button::GetYPos() const
-{
-    return m_yPos;
-}
-
-HorizontalAlignment Button::GetHorizontalAlignment() const
-{
-    return m_horizontalAlignment;
-}
-
-VerticalAlignment Button::GetVerticalAlignment() const
-{
-    return m_verticalAlignment;
-}

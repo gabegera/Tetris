@@ -1,52 +1,44 @@
 #include "MainMenu.h"
 
 #include "Button.h"
+#include "TextBlock.h"
 #include "../Application.h"
 #include "../Renderer.h"
 
 MainMenu::MainMenu(Application& app) : Menu(app)
 {
-    const Uint32 centeredXPos = GetRenderer()->GetRenderWidth() / 2;
+    m_titleTextBlock = CreateTextBlock();
+    m_titleTextBlock->SetText("Tetris");
+    m_titleTextBlock->SetFontSize(64);
+    m_titleTextBlock->SetHorizontalAlignment(HorizontalAlignment::Center);
+    m_titleTextBlock->SetVerticalAlignment(VerticalAlignment::Bottom);
+    m_titleTextBlock->SetHorizontalAnchor(HorizontalAlignment::Center);
+    m_titleTextBlock->SetVerticalAnchor(VerticalAlignment::Top);
+    m_titleTextBlock->SetXOffset(0);
+    m_titleTextBlock->SetYOffset(25);
 
-    Button* startGameButton = CreateButton();
-    startGameButton->SetButtonText("Start Game");
-    startGameButton->SetXPos(centeredXPos);
-    startGameButton->SetYPos(500);
-    startGameButton->BindFunction([this]() { m_application.StartGame(); });
+    m_startGameButton = CreateButton();
+    m_startGameButton->SetButtonText("Start Game");
+    m_startGameButton->SetHorizontalAlignment(HorizontalAlignment::Center);
+    m_startGameButton->SetVerticalAlignment(VerticalAlignment::Center);
+    m_startGameButton->SetHorizontalAnchor(HorizontalAlignment::Center);
+    m_startGameButton->SetVerticalAnchor(VerticalAlignment::Center);
+    m_startGameButton->SetXOffset(0);
+    m_startGameButton->SetYOffset(-36);
+    m_startGameButton->BindFunction([this]() { m_application.StartGame(); });
 
-    Button* exitButton = CreateButton();
-    exitButton->SetButtonText("Exit");
-    exitButton->SetXPos(centeredXPos);
-    exitButton->SetYPos(700);
-    exitButton->BindFunction([this]() {m_application.Stop(); });
+    m_exitButton = CreateButton();
+    m_exitButton->SetButtonText("Exit");
+    m_exitButton->SetHorizontalAlignment(HorizontalAlignment::Center);
+    m_exitButton->SetVerticalAlignment(VerticalAlignment::Center);
+    m_exitButton->SetHorizontalAnchor(HorizontalAlignment::Center);
+    m_exitButton->SetVerticalAnchor(VerticalAlignment::Center);
+    m_exitButton->SetXOffset(0);
+    m_exitButton->SetYOffset(36);
+    m_exitButton->BindFunction([this]() {m_application.Stop(); });
 }
 
 MainMenu::~MainMenu()
 {
 
-}
-
-void MainMenu::RenderTitle()
-{
-    if (!GetRenderer() || !IsVisible()) return;
-
-    const Uint32 xPos = GetRenderer()->GetRenderWidth() / 2;
-    const Uint32 yPos = 36;
-    constexpr Uint32 fontSize = 48;
-    GetRenderer()->DrawText("Tetris", xPos, yPos, Color(255, 255, 255), fontSize, HorizontalAlignment::Center, VerticalAlignment::Bottom);
-}
-
-void MainMenu::Init()
-{
-    Menu::Init();
-
-}
-
-void MainMenu::Update(const float deltaTime)
-{
-    Menu::Update(deltaTime);
-
-    if (!IsVisible()) return;
-
-    RenderTitle();
 }

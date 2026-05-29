@@ -6,13 +6,13 @@ class MainMenu : public Menu
 {
 public:
     explicit MainMenu(Application& app);
-    ~MainMenu();
+    ~MainMenu() override;
 
 protected:
-    void RenderTitle();
+    TextBlock* m_titleTextBlock = nullptr;
 
-public:
-    void Init() override;
-    void Update(float deltaTime) override;
+    Button* m_startGameButton = nullptr;
+
+    Button* m_exitButton = nullptr;
 
 };

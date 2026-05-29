@@ -4,10 +4,11 @@
 #include <vector>
 
 #include "SDL3/SDL_stdinc.h"
-#include "../ColorPalettes.h"
 
-class Renderer;
+class TextBlock;
 class Button;
+class UIElement;
+class Renderer;
 class Application;
 
 class Menu
@@ -19,20 +20,20 @@ public:
 protected:
     Application& m_application;
 
-    std::vector<std::unique_ptr<Button>> m_buttons;
-    Uint32 m_selectedButtonIndex = 0;
+    std::vector<std::unique_ptr<UIElement>> m_children;
+    Uint32 m_selectedUIElementIndex = 0;
 
     Uint32 m_defaultButtonWidth = 256;
     Uint32 m_defaultButtonHeight = 64;
 
     bool m_isVisible = true;
 
+    TextBlock* CreateTextBlock();
+
     Button* CreateButton();
 
-    void RenderButtons() const;
-
-    void SelectNextButton();
-    void SelectPreviousButton();
+    void SelectNextElement();
+    void SelectPreviousElement();
 
 public:
     virtual void Init();
@@ -48,7 +49,7 @@ public:
 
     bool IsVisible() const;
 
-    Button* GetSelectedButton() const;
+    const UIElement* GetSelectedElement() const;
 
     Application* GetApplication() const;
     Renderer* GetRenderer() const;

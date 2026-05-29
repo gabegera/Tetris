@@ -129,65 +129,46 @@ void Renderer::DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, c
     TTF_DrawRendererText(text, xPos, yPos);
 }
 
-void Renderer::DrawButton(const Button* button)
+void Renderer::DrawRectangle(const Uint32 width, const Uint32 height, const Uint32 xPos, const Uint32 yPos,
+    const Color& outlineColor, const Color& fillColor,
+    const HorizontalAlignment horizontalAlignment, const VerticalAlignment verticalAlignment) const
 {
-    if (!button)
-    {
-        std::cerr << "Renderer::DrawButton::Invalid button pointer." << std::endl;
-        return;
-    }
-
-    SDL_FRect buttonRectangle;
-    buttonRectangle.w = button->GetWidth();
-    buttonRectangle.h = button->GetHeight();
-    switch (button->GetHorizontalAlignment())
+    SDL_FRect rectangle;
+    rectangle.w = width;
+    rectangle.h = height;
+    switch (horizontalAlignment)
     {
         case HorizontalAlignment::Left:
-            buttonRectangle.x = button->GetXPos();
+            rectangle.x = xPos;
             break;
         case HorizontalAlignment::Center:
-            buttonRectangle.x = button->GetXPos() - button->GetWidth() / 2;
+            rectangle.x = xPos - width / 2;
             break;
         case HorizontalAlignment::Right:
-            buttonRectangle.x = button->GetXPos() - button->GetWidth();
+            rectangle.x = xPos - width;
             break;
     }
 
-    switch (button->GetVerticalAlignment())
+    switch (verticalAlignment)
     {
         case VerticalAlignment::Top:
-            buttonRectangle.y = button->GetYPos() - button->GetHeight();
+            rectangle.y = yPos - height;
             break;
         case VerticalAlignment::Center:
-            buttonRectangle.y = button->GetYPos() - button->GetHeight() / 2;
+            rectangle.y = yPos - height / 2;
             break;
         case VerticalAlignment::Bottom:
-            buttonRectangle.y = button->GetYPos();
+            rectangle.y = yPos;
             break;
     }
 
-    auto [backgroundRed, backgroundGreen, backgroundBlue] =
-        button->IsSelected() ? button->GetHighlightedBackgroundColor() : button->GetBackgroundColor();
-    SDL_SetRenderDrawColor(m_renderer, backgroundRed, backgroundGreen, backgroundBlue, 255);
-    SDL_RenderFillRect(m_renderer, &buttonRectangle);
+    SDL_SetRenderDrawColor(m_renderer, fillColor.red, fillColor.green, fillColor.blue, 255);
+    SDL_RenderFillRect(m_renderer, &rectangle);
 
-    auto [outlineRed, outlineGreen, outlineBlue] =
-        button->IsSelected() ? button->GetHighlightedOutlineColor() : button->GetOutlineColor();
-    SDL_SetRenderDrawColor(m_renderer, outlineRed, outlineGreen, outlineBlue, 255);
-    SDL_RenderRect(m_renderer, &buttonRectangle);
+    SDL_SetRenderDrawColor(m_renderer, outlineColor.red, outlineColor.green, outlineColor.blue, 255);
+    SDL_RenderRect(m_renderer, &rectangle);
 
     ResetDrawColor();
-
-    DrawText
-    (
-        button->GetButtonText(),
-        button->GetXPos(),
-        button->GetYPos(),
-        button->GetTextColor(),
-        button->GetFontSize(),
-        button->GetHorizontalAlignment(),
-        button->GetVerticalAlignment()
-    );
 }
 
 void Renderer::Init()

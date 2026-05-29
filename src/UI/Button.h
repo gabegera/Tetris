@@ -3,34 +3,25 @@
 #include <functional>
 #include <string>
 
+#include "UIElement.h"
 #include "SDL3/SDL_stdinc.h"
-#include "../ColorPalettes.h"
-#include "../Renderer.h"
 
 class Renderer;
 class Menu;
-enum class HorizontalAlignment : Uint8;
-enum class VerticalAlignment : Uint8;
 
-class Button
+class Button : public UIElement
 {
 public:
     explicit Button(Menu& menu);
-    virtual ~Button();
+    ~Button() override;
 
 protected:
-    Menu& m_menu;
-
     Uint32 m_width = 128;
     Uint32 m_height = 48;
-    Uint32 m_xPos = 0;
-    Uint32 m_yPos = 0;
-    HorizontalAlignment m_horizontalAlignment = HorizontalAlignment::Center;
-    VerticalAlignment m_verticalAlignment = VerticalAlignment::Center;
 
     std::string m_buttonText;
     Uint32 m_fontSize = 32;
-    Color m_textColor;
+    Color m_textColor = {255, 255, 255};
 
     Color m_backgroundColor = {50, 50, 50};
     Color m_outlineColor = {100, 100, 100};
@@ -39,19 +30,12 @@ protected:
 
     std::function<void()> m_boundFunction;
 
-    bool m_isVisible = true;
-
-    void RenderButton();
+    void Render() override;
 
 public:
-    void Init();
-    void Update(float deltaTime);
-
     void BindFunction(const std::function<void()>& inFunction);
 
-    virtual void PressButton();
-
-    bool SetVisibility(bool input);
+    void TriggerElement() override;
 
     void SetButtonText(const std::string& inText);
     void SetFontSize(Uint32 inSize);
@@ -62,15 +46,6 @@ public:
 
     void SetWidth(Uint32 inWidth);
     void SetHeight(Uint32 inHeight);
-    void SetXPos(Uint32 inXPos);
-    void SetYPos(Uint32 inYPos);
-    void SetHorizontalAlignment(HorizontalAlignment inAlignment);
-    void SetVerticalAlignment(VerticalAlignment inAlignment);
-
-    Renderer* GetRenderer() const;
-    Menu* GetOwningMenu() const;
-
-    bool IsVisible() const;
 
     bool IsSelected() const;
 
@@ -85,8 +60,4 @@ public:
 
     Uint32 GetWidth() const;
     Uint32 GetHeight() const;
-    Uint32 GetXPos() const;
-    Uint32 GetYPos() const;
-    HorizontalAlignment GetHorizontalAlignment() const;
-    VerticalAlignment GetVerticalAlignment() const;
 };

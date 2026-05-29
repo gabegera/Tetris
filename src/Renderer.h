@@ -6,25 +6,12 @@
 #include "ColorPalettes.h"
 #include "SDL3/SDL.h"
 #include "SDL3_ttf/SDL_ttf.h"
+#include "UI/UIElement.h"
 
 class Button;
 struct Shape;
 struct Block;
 class Application;
-
-enum class HorizontalAlignment : Uint8
-{
-    Left = 0,
-    Center = 1,
-    Right = 2
-};
-
-enum class VerticalAlignment : Uint8
-{
-    Top = 0,
-    Center = 1,
-    Bottom = 2
-};
 
 class Renderer
 {
@@ -44,11 +31,11 @@ protected:
 #if DEBUG_MODE
     const std::filesystem::path m_blockTexturePath = "../res/Tetris_Block.png";
     const std::filesystem::path m_transparentBlockTexturePath = "../res/Transparent_Tetris_Block.png";
-    const std::filesystem::path m_defaultFontPath = "../res/Fonts/Roboto.ttf";
+    const std::filesystem::path m_defaultFontPath = "../res/Fonts/Tiny5.ttf";
 #else
     const std::filesystem::path m_blockPath = "./res/Tetris_Block.png";
     const std::filesystem::path m_transparentBlockPath = "./res/Transparent_Tetris_Block.png";
-    const std::filesystem::path m_defaultFontPath = "./res/Fonts/Roboto.ttf";
+    const std::filesystem::path m_defaultFontPath = "./res/Fonts/Tiny5.ttf";
 #endif
 
     // Width and Height of the blocks in pixels.
@@ -88,7 +75,11 @@ public:
     void DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, Color color,
         Uint32 size, HorizontalAlignment horizontalAlignment = HorizontalAlignment::Left,
         VerticalAlignment verticalAlignment = VerticalAlignment::Top);
-    void DrawButton(const Button* button);
+
+    void DrawRectangle(Uint32 width, Uint32 height, Uint32 xPos, Uint32 yPos,
+        const Color& outlineColor = {0, 0, 0}, const Color& fillColor = {255, 255, 255},
+        HorizontalAlignment horizontalAlignment = HorizontalAlignment::Left,
+        VerticalAlignment verticalAlignment = VerticalAlignment::Bottom) const;
 
     SDL_Window* GetWindow() const;
     SDL_Renderer* GetSDLRenderer() const;
