@@ -90,6 +90,7 @@ public:
     void GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
 
     const Shape* GetFallingShape() const;
+    const Shape* GetOriginalFallingShape() const;
 
     bool IsBlockAtPos(Uint8 xPos, Uint8 yPos) const;
     bool IsBlockAtIndex(Uint16 index) const;

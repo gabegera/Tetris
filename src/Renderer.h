@@ -51,7 +51,7 @@ public:
     void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, const Shape* owningShape) const;
     void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, SDL_Texture* texture, const Color& color) const;
 
-    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape* shape) const;
+    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape* currentFallingShape, const Shape* originalFallingShape) const;
 
     void DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, Color color, Uint32 size,
         HorizontalAlignment horizontalAlignment = HorizontalAlignment::Left,

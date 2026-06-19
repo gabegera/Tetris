@@ -507,6 +507,11 @@ const Shape* BlockManager::GetFallingShape() const
     return &m_fallingShape;
 }
 
+const Shape* BlockManager::GetOriginalFallingShape() const
+{
+    return m_blocks[m_fallingBlockIndices[0]]->m_owningShape;
+}
+
 bool BlockManager::IsBlockAtPos(const Uint8 xPos, const Uint8 yPos) const
 {
     return IsBlockAtIndex(GetBlockIndexFromPos(xPos, yPos));

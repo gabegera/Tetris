@@ -59,7 +59,7 @@ void Game::RenderShapeGuide()
     Uint8 xPos;
     Uint8 yPos;
     m_blockManager.GetShapeTargetPos(xPos, yPos);
-    GetRenderer()->DrawShapeGuideAtPos(xPos, yPos, m_blockManager.GetFallingShape());
+    GetRenderer()->DrawShapeGuideAtPos(xPos, yPos, m_blockManager.GetFallingShape(), m_blockManager.GetOriginalFallingShape());
 }
 
 void Game::Start()
