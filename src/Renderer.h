@@ -3,9 +3,9 @@
 #include <filesystem>
 #include <string>
 
-#include "ColorPalettes.h"
 #include "SDL3/SDL.h"
 #include "SDL3_ttf/SDL_ttf.h"
+#include "Theme.h"
 #include "UI/UIElement.h"
 
 class Button;
@@ -25,35 +25,17 @@ protected:
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     TTF_TextEngine* m_textEngine = nullptr;
-    TTF_Font* m_font = nullptr;
 
-//TODO: Need to package the files into the exe instead of relying of external paths.
-#if DEBUG_MODE
-    const std::filesystem::path m_blockTexturePath = "../res/Tetris_Block.png";
-    const std::filesystem::path m_transparentBlockTexturePath = "../res/Transparent_Tetris_Block.png";
-    const std::filesystem::path m_defaultFontPath = "../res/Fonts/Tiny5.ttf";
-#else
-    const std::filesystem::path m_blockPath = "./res/Tetris_Block.png";
-    const std::filesystem::path m_transparentBlockPath = "./res/Transparent_Tetris_Block.png";
-    const std::filesystem::path m_defaultFontPath = "./res/Fonts/Tiny5.ttf";
-#endif
+    Uint8 m_blockResolution = 16;
 
-    // Width and Height of the blocks in pixels.
-    const unsigned int m_blockResolution = 16;
+    const Uint8 m_shapeGuideOpacity = 100;
 
-    SDL_Texture* m_blockTexture = nullptr;
-    SDL_Texture* m_transparentBlockTexture = nullptr;
-
-    ColorPalette m_colorPalette = ColorPalettes::Classic;
-
-    void SetBlockTexture(const std::filesystem::path& texturePath);
-    void SetTransparentBlockTexture(const std::filesystem::path& texturePath);
-
-    void SetFont(const std::filesystem::path& fontPath);
-
-    void SetColorPalette(const ColorPalette& newPalette);
+    std::map<const Shape*, SDL_Texture*> m_shapeTextures;
+    SDL_Texture* m_borderTexture;
 
     void ResetDrawColor() const;
+
+    void CreateTexturesFromTheme();
 
 public:
     void Init();
@@ -66,15 +48,14 @@ public:
 
     void ClearRenderer() const;
 
-    void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, Uint16 colorID) const;
-    void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, Color color) const;
+    void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, const Shape* owningShape) const;
+    void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, SDL_Texture* texture, const Color& color) const;
 
-    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, Uint16 colorID) const;
-    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, Color color) const;
+    void DrawShapeGuideAtPos(Uint8 xPos, Uint8 yPos, const Shape* shape) const;
 
-    void DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, Color color,
-        Uint32 size, HorizontalAlignment horizontalAlignment = HorizontalAlignment::Left,
-        VerticalAlignment verticalAlignment = VerticalAlignment::Top);
+    void DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, Color color, Uint32 size,
+        HorizontalAlignment horizontalAlignment = HorizontalAlignment::Left,
+        VerticalAlignment verticalAlignment = VerticalAlignment::Top) const;
 
     void DrawRectangle(Uint32 width, Uint32 height, Uint32 xPos, Uint32 yPos,
         const Color& outlineColor = {0, 0, 0}, const Color& fillColor = {255, 255, 255},
@@ -84,12 +65,10 @@ public:
     SDL_Window* GetWindow() const;
     SDL_Renderer* GetSDLRenderer() const;
 
-    const ColorPalette& GetColorPalette() const;
+    SDL_Texture* GetShapeTexture(const Shape* shape) const;
+    SDL_Texture* GetBorderTexture() const;
 
     Uint32 GetRenderWidth() const;
     Uint32 GetRenderHeight() const;
-
-    TTF_Font* GetDefaultFont() const;
-    Uint32 GetDefaultFontSize() const;
 
 };

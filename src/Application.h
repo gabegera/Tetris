@@ -13,7 +13,9 @@ public:
     ~Application();
 
 protected:
-    std::unique_ptr<MainMenu> m_mainMenu;
+    Theme m_theme;
+
+    std::unique_ptr<Menu> m_activeMenu;
     std::unique_ptr<Game> m_game;
     Renderer m_renderer;
 
@@ -32,8 +34,8 @@ protected:
     void OnUpInput();
     void OnDownInput();
     void OnRotateInput();
-
-    void StartMainMenu();
+    void OnMouseMoved();
+    void OnLeftMouseButtonUp();
 
 public:
     void Start();
@@ -44,6 +46,13 @@ public:
     void StopGame();
     void RestartGame();
 
+    template<typename T>
+    void OpenMenu() requires std::is_base_of_v<Menu, T>
+    {
+        m_activeMenu = std::make_unique<T>(*this);
+        m_activeMenu->Init();
+    }
+
     bool IsRunning() const;
 
     bool IsGameRunning() const;
@@ -52,4 +61,6 @@ public:
 
     Renderer* GetRenderer();
     Game* GetGame() const;
+
+    const Theme* GetTheme() const;
 };

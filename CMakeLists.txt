@@ -11,46 +11,48 @@ set(SDLTTF_HARFBUZZ OFF)
 
 include(FetchContent)
 
-# Tell FetchContent where to clone/store
-set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/lib")
-
 FetchContent_Declare(
         SDL3
         GIT_REPOSITORY  https://github.com/libsdl-org/SDL.git
         GIT_TAG         release-3.4.8
         GIT_SHALLOW     TRUE       # only fetch the target commit, not full history
-        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL3"
-        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL3/build"
+#        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL3"
+#        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL3/build"
 )
 set(SDL_STATIC ON)
 FetchContent_MakeAvailable(SDL3)
-file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl3-tmp")
+#file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl3-tmp")
 
 FetchContent_Declare(
         SDL_image
         GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image.git
         GIT_TAG         release-3.4.4
         GIT_SHALLOW     TRUE       # only fetch the target commit, not full history
-        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL_image"
-        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL_image/build"
+#        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL_image"
+#        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL_image/build"
 )
 FetchContent_MakeAvailable(SDL_image)
-file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl_image-tmp")
-
+#file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl_image-tmp")
 
 FetchContent_Declare(
         SDL_ttf
         GIT_REPOSITORY  https://github.com/libsdl-org/SDL_ttf.git
         GIT_TAG         release-3.2.2
         GIT_SHALLOW     TRUE       # only fetch the target commit, not full history
-        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL_ttf"
-        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL_ttf/build"
+#        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL_ttf"
+#        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL_ttf/build"
 )
 FetchContent_MakeAvailable(SDL_ttf)
-file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl_ttf-tmp")
+#file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/SDL_ttf-tmp")
 
+FetchContent_Declare(
+        battery-embed
+        GIT_REPOSITORY https://github.com/batterycenter/embed.git
+        GIT_TAG        v1.2.19
+)
+FetchContent_MakeAvailable(battery-embed)
 
-add_executable(Tetris WIN32 src/main.cpp
+add_executable(Tetris src/main.cpp
         src/Game.cpp
         src/Game.h
         src/BlockManager.cpp
@@ -58,7 +60,6 @@ add_executable(Tetris WIN32 src/main.cpp
         src/Shapes.h
         src/Renderer.cpp
         src/Renderer.h
-        src/ColorPalettes.h
         src/Application.cpp
         src/Application.h
         src/Application.cpp
@@ -73,18 +74,24 @@ add_executable(Tetris WIN32 src/main.cpp
         src/UI/UIElement.h
         src/UI/TextBlock.cpp
         src/UI/TextBlock.h
+        src/Theme.h
+        src/Theme.cpp
+        src/Color.h
+        src/UI/UIAlignment.h
+        src/UI/SettingsMenu.cpp
+        src/UI/SettingsMenu.h
 )
 
 target_link_libraries(Tetris PRIVATE
-#        -static
-#        gcc
-#        stdc++
-#        winpthread
         SDL3::SDL3-static
         SDL3_image::SDL3_image-static
-        SDL3_ttf::SDL3_ttf-static)
+        SDL3_ttf::SDL3_ttf-static
+)
 
 target_compile_definitions(Tetris PRIVATE
         $<$<CONFIG:Debug>:DEBUG_MODE>
         $<$<CONFIG:Release>:NDEBUG>
 )
+
+b_embed(Tetris res/Default_Block_Texture.png)
+b_embed(Tetris res/Default_Font.ttf)

@@ -9,44 +9,82 @@ struct Shape
 
     std::string blocks;
 
-    bool IsValid() const
+    Shape(const Uint8 inWidth, const std::string& inBlocks) : width(inWidth), blocks(inBlocks)
     {
-        return !blocks.empty();
+        if (width <= 0)
+        {
+            throw std::invalid_argument("Shape::Shape::Width must be greater than 0");
+        }
+
+        if (blocks.empty())
+        {
+            throw std::invalid_argument("Shape::Shape::Blocks cannot be empty");
+        }
     }
 
     Uint8 GetHeight() const
     {
         return std::ceil((blocks.size() * 1.0f) / width);
     }
+
+    bool operator==(const Shape& other) const
+    {
+        return width == other.width && blocks == other.blocks;
+    }
 };
 
 struct ClassicShapes
 {
-    static constexpr Shape L = {2, "x "
-                                   "x "
-                                   "xx"};
+protected:
+    inline static const std::vector<Shape> m_shapes =
+    {
+        {2, "x "    // L
+            "x "
+            "xx"},
 
-    static constexpr Shape J = {2, " x"
-                                   " x"
-                                   "xx"};
+        {2, " x"    // J
+            " x"
+            "xx"},
 
-    static constexpr Shape I = {1, "x"
-                                   "x"
-                                   "x"
-                                   "x"};
+        {4, "xxxx"}, // I
 
-    static constexpr Shape S = {3, " xx"
-                                   "xx "};
+        {3, " xx"   // S
+            "xx "},
 
-    static constexpr Shape Z = {3, "xx "
-                                   " xx"};
+        {3, "xx "   // Z
+            " xx"},
 
-    static constexpr Shape T = {3, "xxx"
-                                   " x "};
+        {3, " x "   // T
+            "xxx"},
 
-    static constexpr Shape O = {2, "xx"
-                                   "xx"};
+        {2, "xx"    // O
+            "xx"}
+    };
 
-    static constexpr unsigned int numOfShapes = 7;
+public:
+    inline static const Shape* L = &m_shapes[0];
+    inline static const Shape* J = &m_shapes[1];
+    inline static const Shape* I = &m_shapes[2];
+    inline static const Shape* S = &m_shapes[3];
+    inline static const Shape* Z = &m_shapes[4];
+    inline static const Shape* T = &m_shapes[5];
+    inline static const Shape* O = &m_shapes[6];
+
+    // Get a vector of pointers to the shapes.
+    static std::vector<const Shape*> Get()
+    {
+        std::vector<const Shape*> out(m_shapes.size());
+        for (int i = 0; i < m_shapes.size(); i++)
+        {
+            out[i] = &m_shapes[i];
+        }
+        return out;
+    }
+
+    static Uint8 Num()
+    {
+        return m_shapes.size();
+    }
+
 };
 

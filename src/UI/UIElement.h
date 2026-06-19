@@ -1,24 +1,10 @@
 #pragma once
 
 #include "SDL3/SDL_stdinc.h"
+#include "UIAlignment.h"
 #include "Menu.h"
-#include "../ColorPalettes.h"
 
 class Menu;
-
-enum class HorizontalAlignment : Uint8
-{
-    Left = 0,
-    Center = 1,
-    Right = 2
-};
-
-enum class VerticalAlignment : Uint8
-{
-    Top = 0,
-    Center = 1,
-    Bottom = 2
-};
 
 class UIElement
 {
@@ -60,9 +46,13 @@ public:
     void SetHorizontalAnchor(HorizontalAlignment inAnchor);
     void SetVerticalAnchor(VerticalAlignment inAnchor);
 
+    virtual void GetBounds(Uint32& outLowerX, Uint32& outUpperX, Uint32& outLowerY, Uint32& outUpperY) const;
+    bool IsPositionWithinBounds(Uint32 xPos, Uint32 yPos) const;
+
     bool IsVisible() const;
 
     bool IsSelectable() const;
+    virtual bool IsSelected() const;
 
     Uint32 GetXPos() const;
     Uint32 GetYPos() const;

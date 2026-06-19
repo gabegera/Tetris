@@ -11,12 +11,11 @@
 BlockManager::BlockManager(Game& game)
     : m_game(game), m_blocks(game.GetGameWidth() * game.GetGameHeight())
 {
-    m_shapesQueue.reserve(ClassicShapes::numOfShapes);
+    m_shapesQueue.reserve(ClassicShapes::Num());
 }
 
 BlockManager::~BlockManager()
 {
-
 }
 
 Uint16 BlockManager::GetBlockIndexFromPos(const Uint8 xPos, const Uint8 yPos) const
@@ -72,14 +71,14 @@ void BlockManager::FillShapesQueue()
     }
 }
 
-Uint16 BlockManager::CreateBlockAtPos(const Uint8 xPos, const Uint8 yPos, const Uint16 colorID)
+Uint16 BlockManager::CreateBlockAtPos(const Uint8 xPos, const Uint8 yPos, const Shape* owningShape)
 {
-    return CreateBlockAtIndex(GetBlockIndexFromPos(xPos, yPos), colorID);
+    return CreateBlockAtIndex(GetBlockIndexFromPos(xPos, yPos), owningShape);
 }
 
-Uint16 BlockManager::CreateBlockAtIndex(const Uint16 index, const Uint16 colorID)
+Uint16 BlockManager::CreateBlockAtIndex(const Uint16 index, const Shape* owningShape)
 {
-    m_blocks[index] = std::make_unique<Block>(colorID);
+    m_blocks[index] = std::make_unique<Block>(owningShape);
     return index;
 }
 
@@ -160,20 +159,16 @@ bool BlockManager::MoveBlockAtIndex(const Uint16 index, const Uint16 newIndex)
     return true;
 }
 
-bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape)
+bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Shape* shape)
 {
-    return CreateShapeAtPos(xPos, yPos, shape, m_colorIDCounter++);
-}
-
-bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape, const Uint8 colorID)
-{
-    if (shape.width < 1)
+    if (shape->width < 1)
     {
-        std::cout << "BlockManager::CreateShapeAtPos::Input Shape has an invalid width, must be greater than 0." << std::endl;
+        std::cout << "BlockManager::CreateShapeAtPos::Input Shape has an invalid width, must be greater than 0." <<
+            std::endl;
         return false;
     }
 
-    if (shape.blocks.size() < 1)
+    if (shape->blocks.size() < 1)
     {
         std::cout << "BlockManager::CreateShapeAtPos::The shape doesn't have any blocks." << std::endl;
         return false;
@@ -185,12 +180,13 @@ bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Sh
         return false;
     }
 
-    m_fallingBlockIndices.reserve(shape.blocks.size());
-    for (int i = 0; i < shape.blocks.size(); i++)
+    m_fallingBlockIndices.reserve(shape->blocks.size());
+    for (int i = 0; i < shape->blocks.size(); i++)
     {
-        if (shape.blocks[i] != ' ')
+        if (shape->blocks[i] != ' ')
         {
-            m_fallingBlockIndices.push_back(CreateBlockAtPos(xPos + (i % shape.width), yPos + std::floor((i * 1.0f) / shape.width), m_colorIDCounter));
+            m_fallingBlockIndices.push_back(
+                CreateBlockAtPos(xPos + (i % shape->width), yPos + std::floor((i * 1.0f) / shape->width), shape));
         }
     }
     m_fallingBlockIndices.shrink_to_fit();
@@ -200,12 +196,14 @@ bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Sh
     return true;
 }
 
-bool BlockManager::CreateShapeAtTopCenter(const Shape& shape)
+bool BlockManager::CreateShapeAtTopCenter(const Shape* shape)
 {
-    const unsigned int spawnXPos = std::ceil(m_game.GetGameWidth() / 2.0f) - shape.width + 1; // Sets the X position of spawn as close to center as possible.
+    const unsigned int spawnXPos = std::ceil(m_game.GetGameWidth() / 2.0f) - shape->width + 1;
+    // Sets the X position of spawn as close to center as possible.
     if (!CreateShapeAtPos(spawnXPos, 0, shape))
     {
-        std::cout << "BlockManager::CreateShapeAtTopCenter::Can't create shape, obstructed. Triggering Game Over." << std::endl;
+        std::cout << "BlockManager::CreateShapeAtTopCenter::Can't create shape, obstructed. Triggering Game Over." <<
+            std::endl;
         m_game.TriggerGameOver();
         return false;
     }
@@ -287,10 +285,9 @@ void BlockManager::Reset()
 {
     std::ranges::fill(m_blocks, nullptr);
     m_fallingBlockIndices.clear();
-    m_colorIDCounter = 0;
     m_shapesBag.clear();
     m_shapesQueue.clear();
-    m_shapesQueue.reserve(ClassicShapes::numOfShapes);
+    m_shapesQueue.reserve(ClassicShapes::Num());
     m_timeSinceShapeFell = 0.0f;
 
     CreateNextShapeInQueue();
@@ -305,7 +302,7 @@ void BlockManager::MoveShapeLeft()
         if (IsIndexAtLeftBorder(fallingBlockIndex)
             || (IsBlockLeftOfIndex(fallingBlockIndex) && !IsFallingBlockLeftOfIndex(fallingBlockIndex)))
         {
-            std::cerr << "BlockManager::MoveShapeLeft::Can't move left, obstructed.";
+            std::cerr << "BlockManager::MoveShapeLeft::Can't move left, obstructed." << std::endl;
             return;
         }
     }
@@ -344,7 +341,7 @@ bool BlockManager::MoveShapeDown()
     {
         if (IsBlockAtBottomBorder(GetBlockYPosFromIndex(fallingBlockIndex))
             || (IsBlockBelowIndex(fallingBlockIndex))
-                && !IsFallingBlockBelowIndex(fallingBlockIndex))
+            && !IsFallingBlockBelowIndex(fallingBlockIndex))
         {
             m_fallingBlockIndices.clear();
             CreateNextShapeInQueue();
@@ -373,70 +370,75 @@ void BlockManager::DropShape()
 
 void BlockManager::RotateShape()
 {
-    Uint8 cornerXPos = m_game.GetGameWidth();
-    Uint8 cornerYPos = m_game.GetGameHeight();
-
-    for (const Uint16 index : m_fallingBlockIndices)
-    {
-        const Uint8 xPos = GetBlockXPosFromIndex(index);
-        const Uint8 yPos = GetBlockYPosFromIndex(index);
-
-        if (xPos < cornerXPos) cornerXPos = xPos;
-        if (yPos < cornerYPos) cornerYPos = yPos;
-    }
-
-    Shape rotatedShape;
-    rotatedShape.width = m_fallingShape.GetHeight();
-    rotatedShape.blocks.reserve(m_fallingShape.blocks.size());
-
-    std::map<int, char> rotatedShapeIndices;
-    for (int i = 0; i < m_fallingShape.blocks.size(); i++)
-    {
-        const int shapeBlockXPos = (i % m_fallingShape.width);
-        const int shapeBlockYPos = -std::floor(i / m_fallingShape.width);
-
-        const int rotatedXPos = shapeBlockYPos + rotatedShape.width - 1;
-        const int rotatedYPos = -shapeBlockXPos;
-        rotatedShapeIndices.emplace(rotatedXPos + (-rotatedYPos * rotatedShape.width), m_fallingShape.blocks[i]);
-    }
-
-    for (const auto& [index, character] : rotatedShapeIndices)
-    {
-        rotatedShape.blocks.push_back(character);
-    }
-
-    const Uint8 colorID = m_blocks[m_fallingBlockIndices[0]]->colorID;
-
-    Uint8 smallestNumberOfNudges = 99;
-    Uint8 newXPos = cornerXPos;
-    Uint8 newYPos = cornerYPos;
-    for (int yNudges = 0; yNudges <= m_maxNumberOfRotationNudges + rotatedShape.GetHeight(); yNudges++)
-    {
-        for (int xNudges = -m_maxNumberOfRotationNudges; xNudges <= m_maxNumberOfRotationNudges + rotatedShape.width; xNudges++)
-        {
-            if (xNudges + cornerXPos < 0) continue;
-            if (CanShapeBeCreatedAtPos(xNudges + cornerXPos, cornerYPos - yNudges, rotatedShape))
-            {
-                const Uint8 totalNudges = yNudges + std::abs(xNudges);
-                if (totalNudges < smallestNumberOfNudges)
-                {
-                    smallestNumberOfNudges = totalNudges;
-                    newXPos = xNudges + cornerXPos;
-                    newYPos = cornerYPos - yNudges;
-                }
-            }
-        }
-    }
-
-    if (smallestNumberOfNudges == 99)
-    {
-        std::cout << "BlockManager::RotateShape::Failed to rotate. Reached maximum number of nudges." << std::endl;
-        return;
-    }
-
-    DeleteShape();
-    CreateShapeAtPos(newXPos, newYPos, rotatedShape, colorID);
-    m_timeSinceShapeFell = 0.0f;
+    // Uint8 cornerXPos = m_game.GetGameWidth();
+    // Uint8 cornerYPos = m_game.GetGameHeight();
+    //
+    // for (const Uint16 index : m_fallingBlockIndices)
+    // {
+    //     const Uint8 xPos = GetBlockXPosFromIndex(index);
+    //     const Uint8 yPos = GetBlockYPosFromIndex(index);
+    //
+    //     if (xPos < cornerXPos) cornerXPos = xPos;
+    //     if (yPos < cornerYPos) cornerYPos = yPos;
+    // }
+    //
+    // Shape rotatedShape;
+    // rotatedShape.width = m_fallingShape->GetHeight();
+    // rotatedShape.blocks.reserve(m_fallingShape->blocks.size());
+    //
+    // std::map<int, char> rotatedShapeIndices;
+    // for (int i = 0; i < m_fallingShape->blocks.size(); i++)
+    // {
+    //     const int shapeBlockXPos = (i % m_fallingShape->width);
+    //     const int shapeBlockYPos = -std::floor(i / m_fallingShape->width);
+    //
+    //     const int rotatedXPos = shapeBlockYPos + rotatedShape.width - 1;
+    //     const int rotatedYPos = -shapeBlockXPos;
+    //     rotatedShapeIndices.emplace(rotatedXPos + (-rotatedYPos * rotatedShape.width), m_fallingShape->blocks[i]);
+    // }
+    //
+    // for (const auto& [index, character] : rotatedShapeIndices)
+    // {
+    //     rotatedShape.blocks.push_back(character);
+    // }
+    //
+    // Uint8 smallestNumberOfNudges = 99;
+    // Uint8 newXPos = cornerXPos;
+    // Uint8 newYPos = cornerYPos;
+    // for (int yNudges = 0; yNudges <= m_maxNumberOfRotationNudges + rotatedShape.GetHeight(); yNudges++)
+    // {
+    //     for (int xNudges = -m_maxNumberOfRotationNudges; xNudges <= m_maxNumberOfRotationNudges + rotatedShape.width;
+    //          xNudges++)
+    //     {
+    //         if (xNudges + cornerXPos < 0) continue;
+    //         if (CanShapeBeCreatedAtPos(xNudges + cornerXPos, cornerYPos - yNudges, &rotatedShape))
+    //         {
+    //             const Uint8 totalNudges = yNudges + std::abs(xNudges);
+    //             if (totalNudges < smallestNumberOfNudges)
+    //             {
+    //                 smallestNumberOfNudges = totalNudges;
+    //                 newXPos = xNudges + cornerXPos;
+    //                 newYPos = cornerYPos - yNudges;
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // if (smallestNumberOfNudges == 99)
+    // {
+    //     std::cout << "BlockManager::RotateShape::Failed to rotate. Reached maximum number of nudges." << std::endl;
+    //     return;
+    // }
+    //
+    // const Shape originalShape = m_blocks[m_fallingBlockIndices[0]]->m_owningShape;
+    // DeleteShape();
+    // CreateShapeAtPos(newXPos, newYPos, &rotatedShape);
+    // for (int i = 0; i < m_fallingBlockIndices.size(); i++)
+    // {
+    //     m_blocks[i]->m_owningShape = originalShape;
+    // }
+    //
+    // m_timeSinceShapeFell = 0.0f;
 }
 
 void BlockManager::GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions,
@@ -468,7 +470,7 @@ void BlockManager::GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint
 }
 
 void BlockManager::GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions,
-        std::vector<Block*>& blockPtrs) const
+                                         std::vector<Block*>& blockPtrs) const
 {
     const Uint16 vectorSize = m_fallingBlockIndices.size();
 
@@ -482,7 +484,8 @@ void BlockManager::GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::ve
 
         if (!IsBlockAtIndex(fallingBlockIndex))
         {
-            std::cerr << "BlockManager::GetFallingShapeBlocks::There is not block at index " << fallingBlockIndex << std::endl;
+            std::cerr << "BlockManager::GetFallingShapeBlocks::There is not block at index " << fallingBlockIndex <<
+                std::endl;
             continue;
         }
 
@@ -499,24 +502,9 @@ void BlockManager::GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::ve
     blockPtrs = outPtrs;
 }
 
-const Shape& BlockManager::GetFallingShape() const
+const Shape* BlockManager::GetFallingShape() const
 {
     return m_fallingShape;
-}
-
-Uint8 BlockManager::GetBlockColorIDAtPos(const Uint8 xPos, const Uint8 yPos) const
-{
-    return GetBlockColorIDAtIndex(GetBlockIndexFromPos(xPos, yPos));
-}
-
-Uint8 BlockManager::GetBlockColorIDAtIndex(const Uint16 index) const
-{
-    return IsBlockAtIndex(index) ? m_blocks[index]->colorID : 0;
-}
-
-Uint8 BlockManager::GetFallingShapeColorID() const
-{
-    return GetBlockColorIDAtIndex(m_fallingBlockIndices.front());
 }
 
 bool BlockManager::IsBlockAtPos(const Uint8 xPos, const Uint8 yPos) const
@@ -687,15 +675,15 @@ bool BlockManager::CanLineBeCleared(const Uint8 yPos) const
     return true;
 }
 
-bool BlockManager::CanShapeBeCreatedAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape) const
+bool BlockManager::CanShapeBeCreatedAtPos(const Uint8 xPos, const Uint8 yPos, const Shape* shape) const
 {
-    for (int i = 0; i < shape.blocks.size(); i++)
+    for (int i = 0; i < shape->blocks.size(); i++)
     {
-        if (shape.blocks[i] == ' ') continue;
+        if (shape->blocks[i] == ' ') continue;
 
-        const Uint8 shapeBlockXPos = xPos + (i % shape.width);
-        const Uint8 shapeBlockYPos = yPos + std::floor((i * 1.0f) / shape.width);
-        if (xPos + shape.width > m_game.GetGameWidth() || yPos + shape.GetHeight() > m_game.GetGameHeight()
+        const Uint8 shapeBlockXPos = xPos + (i % shape->width);
+        const Uint8 shapeBlockYPos = yPos + std::floor((i * 1.0f) / shape->width);
+        if (xPos + shape->width > m_game.GetGameWidth() || yPos + shape->GetHeight() > m_game.GetGameHeight()
             || (IsBlockAtPos(shapeBlockXPos, shapeBlockYPos) && !IsFallingBlockAtPos(shapeBlockXPos, shapeBlockYPos)))
         {
             return false;

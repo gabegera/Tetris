@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Application.h"
+#include "SDL3_image/SDL_image.h"
 #include "UI/Button.h"
 
 Renderer::Renderer(Application& app) : m_application(app)
@@ -15,88 +16,95 @@ Renderer::~Renderer()
 
 }
 
-void Renderer::SetBlockTexture(const std::filesystem::path& texturePath)
-{
-    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.generic_string().c_str());
-    m_blockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
-    SDL_DestroySurface(blockSurface);
-}
+// void Renderer::SetBlockTexture(const std::filesystem::path& texturePath)
+// {
+//     SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.generic_string().c_str());
+//     m_blockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
+//     SDL_DestroySurface(blockSurface);
+// }
+//
+// void Renderer::SetTransparentBlockTexture(const std::filesystem::path& texturePath)
+// {
+//     SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.generic_string().c_str());
+//     m_transparentBlockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
+//     SDL_DestroySurface(blockSurface);
+// }
 
-void Renderer::SetTransparentBlockTexture(const std::filesystem::path& texturePath)
-{
-    SDL_Surface* blockSurface = SDL_LoadSurface(texturePath.generic_string().c_str());
-    m_transparentBlockTexture = SDL_CreateTextureFromSurface(m_renderer, blockSurface);
-    SDL_DestroySurface(blockSurface);
-}
+// void Renderer::SetFont(const std::filesystem::path& fontPath)
+// {
+//     m_font = TTF_OpenFont(fontPath.generic_string().c_str(), 16);
+// }
 
-void Renderer::SetFont(const std::filesystem::path& fontPath)
-{
-    m_font = TTF_OpenFont(fontPath.generic_string().c_str(), 16);
-}
-
-void Renderer::SetColorPalette(const ColorPalette& newPalette)
-{
-    m_colorPalette = newPalette;
-}
+// void Renderer::SetColorPalette(const ColorPalette& newPalette)
+// {
+//     m_colorPalette = newPalette;
+// }
 
 void Renderer::ResetDrawColor() const
 {
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 }
 
-void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Uint16 colorID) const
+void Renderer::CreateTexturesFromTheme()
 {
-    const Uint16 index = colorID > 0 ? colorID % m_colorPalette.blockColors.size() : 0;
-    DrawBlockAtPos(xPos, yPos, m_colorPalette.blockColors[index]);
-}
-
-void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, const Color color) const
-{
-    SDL_FRect block;
-    block.w = m_blockResolution;
-    block.h = m_blockResolution;
-    block.x = xPos * m_blockResolution;
-    block.y = yPos * m_blockResolution;
-
-    SDL_SetTextureColorMod(m_blockTexture, color.red, color.green, color.blue);
-    SDL_RenderTexture(m_renderer, m_blockTexture, nullptr, &block);
-    SDL_SetTextureColorMod(m_blockTexture, 255, 255, 255);
-}
-
-void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape, const Uint16 colorID) const
-{
-    const Uint16 index = colorID > 0 ? colorID % m_colorPalette.blockColors.size() : 0;
-    DrawShapeGuideAtPos(xPos, yPos, shape, m_colorPalette.blockColors[index]);
-}
-
-void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Shape& shape, const Color color) const
-{
-    SDL_FRect block;
-    block.w = m_blockResolution;
-    block.h = m_blockResolution;
-
-    for (int i = 0; i < shape.blocks.size(); i++)
+    m_shapeTextures.clear();
+    for (const Shape* shape : ClassicShapes::Get())
     {
-        if (shape.blocks[i] != ' ')
+        SDL_Texture* shapeTexture = SDL_CreateTextureFromSurface(m_renderer, m_application.GetTheme()->GetShapeSurface(shape));
+
+        if (!shapeTexture)
         {
-            block.x = (xPos + (i % shape.width)) * m_blockResolution;
-            block.x += m_blockResolution; // offset the border.
-            block.y = (yPos + std::floor((i * 1.0f) / shape.width)) * m_blockResolution;
-            block.y += m_blockResolution;
-            SDL_SetTextureColorMod(m_transparentBlockTexture, color.red, color.green, color.blue);
-            SDL_SetTextureAlphaMod(m_transparentBlockTexture, 150);
-            SDL_RenderTexture(m_renderer, m_transparentBlockTexture, nullptr, &block);
+            std::cerr << "Renderer::CreateTexturesFromTheme::Failed to create shape texture" << std::endl;
+            continue;
         }
+
+        SDL_SetTextureScaleMode(shapeTexture, SDL_SCALEMODE_PIXELART);
+        m_shapeTextures.try_emplace(shape, shapeTexture);
     }
 
-    SDL_SetTextureColorMod(m_transparentBlockTexture, 255, 255, 255);
+    SDL_Texture* borderTexture = SDL_CreateTextureFromSurface(m_renderer, m_application.GetTheme()->GetBorderSurface());
+
+    if (!borderTexture)
+    {
+        std::cerr << "Renderer::CreateTexturesFromTheme::Failed to create border texture" << std::endl;
+    }
+
+    m_borderTexture = borderTexture;
+}
+
+void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Shape* shape) const
+{
+    SDL_FRect block;
+    block.w = m_blockResolution;
+    block.h = m_blockResolution;
+
+    for (int i = 0; i < shape->blocks.size(); i++)
+    {
+        if (shape->blocks[i] != ' ')
+        {
+            block.x = (xPos + (i % shape->width)) * m_blockResolution;
+            block.x += m_blockResolution; // offset the border.
+            block.y = (yPos + std::floor((i * 1.0f) / shape->width)) * m_blockResolution;
+            block.y += m_blockResolution;
+            if (m_shapeTextures.contains(shape))
+            {
+                SDL_Texture* texture = m_shapeTextures.at(shape);
+                auto [red, green, blue] = m_application.GetTheme()->GetShapeColor(shape);
+                SDL_SetTextureColorMod(texture, red, green, blue);
+                SDL_SetTextureAlphaMod(texture, m_shapeGuideOpacity);
+                SDL_RenderTexture(m_renderer, texture, nullptr, &block);
+                SDL_SetTextureAlphaMod(texture, 255);
+            }
+        }
+    }
 }
 
 void Renderer::DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, const Color color,
-    const Uint32 size, const HorizontalAlignment horizontalAlignment, const VerticalAlignment verticalAlignment)
+    const Uint32 size, const HorizontalAlignment horizontalAlignment, const VerticalAlignment verticalAlignment) const
 {
-    TTF_SetFontSize(m_font, size);
-    TTF_Text* text = TTF_CreateText(m_textEngine, m_font, inString.c_str(), sizeof(inString));
+    TTF_Font* font = m_application.GetTheme()->GetFont();
+    TTF_SetFontSize(font, size);
+    TTF_Text* text = TTF_CreateText(m_textEngine, font, inString.c_str(), sizeof(inString));
     TTF_SetTextColor(text, color.red, color.green, color.blue, 255);
 
     int textWidth;
@@ -129,48 +137,6 @@ void Renderer::DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, c
     TTF_DrawRendererText(text, xPos, yPos);
 }
 
-void Renderer::DrawRectangle(const Uint32 width, const Uint32 height, const Uint32 xPos, const Uint32 yPos,
-    const Color& outlineColor, const Color& fillColor,
-    const HorizontalAlignment horizontalAlignment, const VerticalAlignment verticalAlignment) const
-{
-    SDL_FRect rectangle;
-    rectangle.w = width;
-    rectangle.h = height;
-    switch (horizontalAlignment)
-    {
-        case HorizontalAlignment::Left:
-            rectangle.x = xPos;
-            break;
-        case HorizontalAlignment::Center:
-            rectangle.x = xPos - width / 2;
-            break;
-        case HorizontalAlignment::Right:
-            rectangle.x = xPos - width;
-            break;
-    }
-
-    switch (verticalAlignment)
-    {
-        case VerticalAlignment::Top:
-            rectangle.y = yPos - height;
-            break;
-        case VerticalAlignment::Center:
-            rectangle.y = yPos - height / 2;
-            break;
-        case VerticalAlignment::Bottom:
-            rectangle.y = yPos;
-            break;
-    }
-
-    SDL_SetRenderDrawColor(m_renderer, fillColor.red, fillColor.green, fillColor.blue, 255);
-    SDL_RenderFillRect(m_renderer, &rectangle);
-
-    SDL_SetRenderDrawColor(m_renderer, outlineColor.red, outlineColor.green, outlineColor.blue, 255);
-    SDL_RenderRect(m_renderer, &rectangle);
-
-    ResetDrawColor();
-}
-
 void Renderer::Init()
 {
     m_window = SDL_CreateWindow("Tetris", 500, 1000, SDL_WINDOW_RESIZABLE);
@@ -190,13 +156,6 @@ void Renderer::Init()
     }
     SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
-    if (!TTF_Init())
-    {
-        std::cerr << "Renderer::Init::SDL-ttf failed to initialize." << std::endl;
-        m_application.Stop();
-        return;
-    }
-
     m_textEngine = TTF_CreateRendererTextEngine(m_renderer);
     if (!m_textEngine)
     {
@@ -207,12 +166,7 @@ void Renderer::Init()
 
     SDL_SetRenderVSync(m_renderer, 1);
 
-    SetBlockTexture(m_blockTexturePath);
-    SetTransparentBlockTexture(m_transparentBlockTexturePath);
-    SetFont(m_defaultFontPath);
-
-    SDL_SetTextureScaleMode(m_blockTexture, SDL_SCALEMODE_PIXELART);
-    SDL_SetTextureScaleMode(m_transparentBlockTexture, SDL_SCALEMODE_PIXELART);
+    CreateTexturesFromTheme();
 }
 
 void Renderer::Stop() const
@@ -249,6 +203,82 @@ void Renderer::ClearRenderer() const
     SDL_RenderClear(m_renderer);
 }
 
+void Renderer::DrawBlockAtPos(const unsigned int xPos, unsigned int yPos, const Shape* owningShape) const
+{
+    SDL_Texture* texture = nullptr;
+    if (m_shapeTextures.contains(owningShape))
+    {
+        texture = m_shapeTextures.at(owningShape);
+    }
+
+    DrawBlockAtPos(xPos, yPos, texture, m_application.GetTheme()->GetShapeColor(owningShape));
+}
+
+void Renderer::DrawBlockAtPos(const unsigned int xPos, const unsigned int yPos, SDL_Texture* texture, const Color& color) const
+{
+    SDL_FRect block;
+    block.w = m_blockResolution;
+    block.h = m_blockResolution;
+    block.x = xPos * m_blockResolution;
+    block.y = yPos * m_blockResolution;
+
+    if (texture)
+    {
+        SDL_SetTextureColorMod(texture, color.red, color.green, color.blue);
+        SDL_RenderTexture(m_renderer, texture, nullptr, &block);
+    }
+    else
+    {
+        constexpr Uint8 alpha = 255;
+        SDL_SetRenderDrawColor(m_renderer, color.red, color.green, color.blue, alpha);
+        SDL_RenderFillRect(m_renderer, &block);
+    }
+
+    ResetDrawColor();
+}
+
+void Renderer::DrawRectangle(const Uint32 width, const Uint32 height, const Uint32 xPos, const Uint32 yPos,
+                             const Color& outlineColor, const Color& fillColor,
+                             const HorizontalAlignment horizontalAlignment, const VerticalAlignment verticalAlignment) const
+{
+    SDL_FRect rectangle;
+    rectangle.w = width;
+    rectangle.h = height;
+    switch (horizontalAlignment)
+    {
+    case HorizontalAlignment::Left:
+        rectangle.x = xPos;
+        break;
+    case HorizontalAlignment::Center:
+        rectangle.x = xPos - width / 2;
+        break;
+    case HorizontalAlignment::Right:
+        rectangle.x = xPos - width;
+        break;
+    }
+
+    switch (verticalAlignment)
+    {
+    case VerticalAlignment::Top:
+        rectangle.y = yPos - height;
+        break;
+    case VerticalAlignment::Center:
+        rectangle.y = yPos - height / 2;
+        break;
+    case VerticalAlignment::Bottom:
+        rectangle.y = yPos;
+        break;
+    }
+
+    SDL_SetRenderDrawColor(m_renderer, fillColor.red, fillColor.green, fillColor.blue, 255);
+    SDL_RenderFillRect(m_renderer, &rectangle);
+
+    SDL_SetRenderDrawColor(m_renderer, outlineColor.red, outlineColor.green, outlineColor.blue, 255);
+    SDL_RenderRect(m_renderer, &rectangle);
+
+    ResetDrawColor();
+}
+
 SDL_Window* Renderer::GetWindow() const
 {
     return m_window;
@@ -259,9 +289,21 @@ SDL_Renderer* Renderer::GetSDLRenderer() const
     return m_renderer;
 }
 
-const ColorPalette& Renderer::GetColorPalette() const
+SDL_Texture* Renderer::GetShapeTexture(const Shape* shape) const
 {
-    return m_colorPalette;
+    try
+    {
+        return m_shapeTextures.at(shape);
+    }
+    catch (const std::out_of_range& error)
+    {
+        return nullptr;
+    }
+}
+
+SDL_Texture* Renderer::GetBorderTexture() const
+{
+    return m_borderTexture;
 }
 
 Uint32 Renderer::GetRenderWidth() const
@@ -282,9 +324,4 @@ Uint32 Renderer::GetRenderHeight() const
         return 0;
     }
     return height;
-}
-
-TTF_Font* Renderer::GetDefaultFont() const
-{
-    return m_font;
 }

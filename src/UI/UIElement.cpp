@@ -48,6 +48,28 @@ void UIElement::SetVerticalAnchor(VerticalAlignment inAnchor)
     m_verticalAnchor = inAnchor;
 }
 
+void UIElement::GetBounds(Uint32& outLowerX, Uint32& outUpperX, Uint32& outLowerY, Uint32& outUpperY) const
+{
+    outLowerX = 0;
+    outUpperX = 0;
+    outLowerY = 0;
+    outUpperY = 0;
+}
+
+bool UIElement::IsPositionWithinBounds(const Uint32 xPos, const Uint32 yPos) const
+{
+    Uint32 lowerX;
+    Uint32 upperX;
+    Uint32 lowerY;
+    Uint32 upperY;
+    GetBounds(lowerX, upperX, lowerY, upperY);
+
+    if (xPos < lowerX || xPos > upperX) return false;
+    if (yPos < lowerY || yPos > upperY) return false;
+
+    return true;
+}
+
 void UIElement::Init()
 {
 
@@ -83,6 +105,13 @@ bool UIElement::IsVisible() const
 bool UIElement::IsSelectable() const
 {
     return m_isSelectable;
+}
+
+bool UIElement::IsSelected() const
+{
+    if (!m_isSelectable) return false;
+
+    return m_menu.GetSelectedElement() == this;
 }
 
 Uint32 UIElement::GetXPos() const

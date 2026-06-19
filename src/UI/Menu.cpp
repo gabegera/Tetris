@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "../Application.h"
 #include "Button.h"
 #include "TextBlock.h"
+#include "../Application.h"
 
 Menu::Menu(Application& app) : m_application(app)
 {
@@ -58,11 +58,15 @@ void Menu::SelectNextElement()
 
         if (m_children[m_selectedUIElementIndex].get()->IsSelectable())
         {
+            m_isElementSelected = true;
             return;
         }
 
         m_selectedUIElementIndex++;
     }
+
+    m_selectedUIElementIndex = 0;
+    m_isElementSelected = false;
 }
 
 void Menu::SelectPreviousElement()
@@ -77,11 +81,15 @@ void Menu::SelectPreviousElement()
 
         if (m_children[m_selectedUIElementIndex].get()->IsSelectable())
         {
+            m_isElementSelected = true;
             return;
         }
 
         m_selectedUIElementIndex--;
     }
+
+    m_selectedUIElementIndex = 0;
+    m_isElementSelected = false;
 }
 
 void Menu::Init()
@@ -119,16 +127,6 @@ void Menu::ReceiveDownInput()
     SelectNextElement();
 }
 
-void Menu::ReceiveLeftInput()
-{
-    if (m_children.empty()) return;
-}
-
-void Menu::ReceiveRightInput()
-{
-    if (m_children.empty()) return;
-}
-
 void Menu::ReceiveSelectInput()
 {
     if (m_children.empty()) return;
@@ -145,6 +143,52 @@ void Menu::ReceiveSelectInput()
     }
 }
 
+void Menu::ReceiveMouseInput()
+{
+    float mouseX;
+    float mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+
+    for (int i = 0; i < m_children.size(); i++)
+    {
+        if (!m_children[i])
+        {
+            std::cerr << "Menu::ReceiveMouseInput::Passed over nullptr at index " << i << std::endl;
+        }
+
+        const UIElement* element = m_children[i].get();
+        if (!element->IsSelectable()) continue;
+
+        if (element->IsPositionWithinBounds(mouseX, mouseY))
+        {
+            m_selectedUIElementIndex = i;
+            m_isElementSelected = true;
+            return;
+        }
+    }
+
+    m_isElementSelected = false;
+    m_selectedUIElementIndex = 0;
+}
+
+void Menu::ReceiveLeftMouseButtonUpInput()
+{
+    UIElement* selectedElement = m_children[m_selectedUIElementIndex].get();
+    if (!selectedElement)
+    {
+        std::cerr << "Menu::ReceiveLeftMouseButtonUpInput::Selected element is invalid at index " << m_selectedUIElementIndex << std::endl;
+        return;
+    }
+
+    float mouseX;
+    float mouseY;
+    SDL_GetMouseState(&mouseX, &mouseY);
+    if (selectedElement->IsPositionWithinBounds(mouseX, mouseY))
+    {
+        selectedElement->TriggerElement();
+    }
+}
+
 bool Menu::SetVisibility(const bool input)
 {
     return m_isVisible = input;
@@ -157,9 +201,12 @@ bool Menu::IsVisible() const
 
 const UIElement* Menu::GetSelectedElement() const
 {
+    if (!m_isElementSelected) return nullptr;
+
     try
     {
-        return m_children.at(m_selectedUIElementIndex).get();
+        const UIElement* element = m_children.at(m_selectedUIElementIndex).get();
+        return element->IsSelectable() ? element : nullptr;
     }
     catch (const std::out_of_range& error)
     {

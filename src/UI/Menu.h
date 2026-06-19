@@ -21,6 +21,7 @@ protected:
     Application& m_application;
 
     std::vector<std::unique_ptr<UIElement>> m_children;
+    bool m_isElementSelected = false;
     Uint32 m_selectedUIElementIndex = 0;
 
     Uint32 m_defaultButtonWidth = 256;
@@ -41,9 +42,9 @@ public:
 
     virtual void ReceiveUpInput();
     virtual void ReceiveDownInput();
-    virtual void ReceiveLeftInput();
-    virtual void ReceiveRightInput();
     virtual void ReceiveSelectInput();
+    virtual void ReceiveMouseInput();
+    virtual void ReceiveLeftMouseButtonUpInput();
 
     bool SetVisibility(bool input);
 

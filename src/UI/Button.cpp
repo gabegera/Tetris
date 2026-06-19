@@ -22,8 +22,36 @@ void Button::Render()
     GetRenderer()->DrawRectangle(m_width, m_height, GetXPos(), GetYPos(), backgroundColor, outlineColor,
         m_horizontalAlignment, m_verticalAlignment);
 
-    GetRenderer()->DrawText(m_buttonText, GetXPos(), GetYPos(), m_textColor, m_fontSize,
-        m_horizontalAlignment, m_verticalAlignment);
+    if (m_buttonText.empty()) return;
+
+    Uint32 textXPos = GetXPos();
+    switch (m_horizontalAlignment)
+    {
+    case HorizontalAlignment::Left:
+        textXPos += m_width / 2;
+        break;
+    case HorizontalAlignment::Center:
+        break;
+    case HorizontalAlignment::Right:
+        textXPos -= m_width / 2;
+        break;
+    }
+
+    Uint32 textYPos = GetYPos();
+    switch (m_verticalAlignment)
+    {
+    case VerticalAlignment::Top:
+        textYPos -= m_height / 2;
+        break;
+    case VerticalAlignment::Center:
+        break;
+    case VerticalAlignment::Bottom:
+        textYPos += m_height / 2;
+        break;
+    }
+
+    GetRenderer()->DrawText(m_buttonText, textXPos, textYPos, m_textColor, m_fontSize,
+        HorizontalAlignment::Center, VerticalAlignment::Center);
 }
 
 void Button::BindFunction(const std::function<void()>& inFunction)
@@ -78,9 +106,39 @@ void Button::SetHeight(const Uint32 inHeight)
     m_height = inHeight;
 }
 
-bool Button::IsSelected() const
+void Button::GetBounds(Uint32& outLowerX, Uint32& outUpperX, Uint32& outLowerY, Uint32& outUpperY) const
 {
-    return m_menu.GetSelectedElement() == this;
+    switch (m_horizontalAlignment)
+    {
+    case HorizontalAlignment::Left:
+        outLowerX = GetXPos();
+        outUpperX = GetXPos() + m_width;
+        break;
+    case HorizontalAlignment::Center:
+        outLowerX = GetXPos() - (m_width / 2);
+        outUpperX = GetXPos() + (m_width / 2);
+        break;
+    case HorizontalAlignment::Right:
+        outLowerX = GetXPos() - m_width;
+        outUpperX = GetXPos();
+        break;
+    }
+
+    switch (m_verticalAlignment)
+    {
+    case VerticalAlignment::Top:
+        outLowerY = GetYPos() - m_height;;
+        outUpperY = GetYPos();
+        break;
+    case VerticalAlignment::Center:
+        outLowerY = GetYPos() - (m_height / 2);
+        outUpperY = GetYPos() + (m_height / 2);
+        break;
+    case VerticalAlignment::Bottom:
+        outLowerY = GetYPos();
+        outUpperY = GetYPos() + m_height;
+        break;
+    }
 }
 
 const std::string& Button::GetButtonText() const

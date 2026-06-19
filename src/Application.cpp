@@ -62,6 +62,7 @@ void Application::ProcessEvents()
                     OnDownInput();
                     break;
                 case SDLK_SPACE:
+                case SDLK_RETURN:
                     OnRotateInput();
                     break;
                 default:
@@ -92,6 +93,23 @@ void Application::ProcessEvents()
                     OnRotateInput();
                 default:
                     break;
+            }
+        }
+
+        if (event.type == SDL_EVENT_MOUSE_MOTION)
+        {
+            OnMouseMoved();
+        }
+
+        if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
+        {
+            switch (event.button.button)
+            {
+            case SDL_BUTTON_LEFT:
+                OnLeftMouseButtonUp();
+                break;
+            default:
+                break;
             }
         }
     }
@@ -127,9 +145,9 @@ void Application::OnUpInput()
     {
         m_game->GetBlockManager()->DropShape();
     }
-    else if (m_mainMenu)
+    else if (m_activeMenu)
     {
-        m_mainMenu->ReceiveUpInput();
+        m_activeMenu->ReceiveUpInput();
     }
 }
 
@@ -139,9 +157,9 @@ void Application::OnDownInput()
     {
         m_game->GetBlockManager()->MoveShapeDown();
     }
-    else if (m_mainMenu)
+    else if (m_activeMenu)
     {
-        m_mainMenu->ReceiveDownInput();
+        m_activeMenu->ReceiveDownInput();
     }
 }
 
@@ -151,16 +169,34 @@ void Application::OnRotateInput()
     {
         m_game->GetBlockManager()->RotateShape();
     }
-    else if (m_mainMenu)
+    else if (m_activeMenu)
     {
-        m_mainMenu->ReceiveSelectInput();
+        m_activeMenu->ReceiveSelectInput();
     }
 }
 
-void Application::StartMainMenu()
+void Application::OnMouseMoved()
 {
-    m_mainMenu = std::make_unique<MainMenu>(*this);
-    m_mainMenu->Init();
+    if (IsGameRunning())
+    {
+
+    }
+    else if (m_activeMenu)
+    {
+        m_activeMenu->ReceiveMouseInput();
+    }
+}
+
+void Application::OnLeftMouseButtonUp()
+{
+    if (IsGameRunning())
+    {
+
+    }
+    else if (m_activeMenu)
+    {
+        m_activeMenu->ReceiveLeftMouseButtonUpInput();
+    }
 }
 
 void Application::StartGame()
@@ -168,7 +204,7 @@ void Application::StartGame()
     m_game = std::make_unique<Game>(*this);
     m_game->Start();
 
-    m_mainMenu->SetVisibility(false);
+    m_activeMenu->SetVisibility(false);
 }
 
 void Application::StopGame()
@@ -179,7 +215,7 @@ void Application::StopGame()
         m_game = nullptr;
     }
 
-    m_mainMenu->SetVisibility(true);
+    m_activeMenu->SetVisibility(true);
     m_renderer.SetRendererSizeToWindowSize();
 }
 
@@ -187,15 +223,22 @@ void Application::Start()
 {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD))
     {
-        std::cerr << "Game::Start::SDL failed to Initialize." << std::endl;
+        std::cerr << "Application::Start::SDL failed to Initialize." << std::endl;
         Stop();
     }
 
+    if (!TTF_Init())
+    {
+        std::cerr << "Application::Start::SDL-ttf failed to initialize." << std::endl;
+        Stop();
+        return;
+    }
+
+    m_theme.Init();
+
     m_renderer.Init();
 
-    StartMainMenu();
-
-    // StartGame();
+    OpenMenu<MainMenu>();
 }
 
 void Application::Stop()
@@ -213,9 +256,9 @@ void Application::Update()
 
     m_renderer.ClearRenderer();
 
-    if (m_mainMenu)
+    if (m_activeMenu)
     {
-        m_mainMenu->Update(m_deltaTime);
+        m_activeMenu->Update(m_deltaTime);
     }
 
     if (m_game)
@@ -255,4 +298,9 @@ Renderer* Application::GetRenderer()
 Game* Application::GetGame() const
 {
     return m_game.get();
+}
+
+const Theme* Application::GetTheme() const
+{
+    return &m_theme;
 }

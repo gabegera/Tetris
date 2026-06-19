@@ -3,15 +3,16 @@
 #include <memory>
 #include <vector>
 
-#include "ColorPalettes.h"
-#include "Shapes.h"
 #include "SDL3/SDL_stdinc.h"
 
+struct Shape;
 class Game;
 
 struct Block
 {
-    Uint8 colorID;
+    explicit Block(const Shape* inShape) : m_owningShape(inShape) {}
+
+    const Shape* m_owningShape;
 };
 
 class BlockManager
@@ -23,8 +24,6 @@ public:
 protected:
     Game& m_game;
 
-    Uint16 m_colorIDCounter = 0;
-
     // How many times in each direction the shape is allowed to be nudged when rotating.
     const Uint8 m_maxNumberOfRotationNudges = 3;
 
@@ -32,11 +31,11 @@ protected:
     const float m_shapeFallingRate = 0.5f;
     float m_timeSinceShapeFell = 0.0f;
 
-    std::vector<Shape> m_shapesBag;
-    std::vector<Shape> m_shapesQueue;
+    std::vector<const Shape*> m_shapesBag;
+    std::vector<const Shape*> m_shapesQueue;
 
     std::vector<Uint16> m_fallingBlockIndices;
-    Shape m_fallingShape;
+    const Shape* m_fallingShape = nullptr;
 
     std::vector<std::unique_ptr<Block>> m_blocks;
 
@@ -48,8 +47,8 @@ protected:
     void FillShapesBag();
     void FillShapesQueue();
 
-    Uint16 CreateBlockAtPos(Uint8 xPos, Uint8 yPos, Uint16 colorID);
-    Uint16 CreateBlockAtIndex(Uint16 index, Uint16 colorID);
+    Uint16 CreateBlockAtPos(Uint8 xPos, Uint8 yPos, const Shape* owningShape);
+    Uint16 CreateBlockAtIndex(Uint16 index, const Shape* owningShape);
 
     void DeleteBlockAtPos(Uint8 xPos, Uint8 yPos);
     void DeleteBlockAtIndex(Uint16 index);
@@ -62,10 +61,9 @@ protected:
     bool MoveBlockAtIndex(Uint16 index, Uint16 newIndex);
 
     // Creates a shape where the top left corner will reside at the target position.
-    bool CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape);
-    bool CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape, const Uint8 colorID);
+    bool CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape* shape);
     // Creates a shape at the very top center of the game borders.
-    bool CreateShapeAtTopCenter(const Shape& shape);
+    bool CreateShapeAtTopCenter(const Shape* shape);
     // Creates the next shape in queue at the very top center of the game borders.
     bool CreateNextShapeInQueue();
 
@@ -90,11 +88,7 @@ public:
     void GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
     void GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
 
-    const Shape& GetFallingShape() const;
-
-    Uint8 GetBlockColorIDAtPos(Uint8 xPos, Uint8 yPos) const;
-    Uint8 GetBlockColorIDAtIndex(Uint16 index) const;
-    Uint8 GetFallingShapeColorID() const;
+    const Shape* GetFallingShape() const;
 
     bool IsBlockAtPos(Uint8 xPos, Uint8 yPos) const;
     bool IsBlockAtIndex(Uint16 index) const;
@@ -131,7 +125,7 @@ public:
 
     bool CanLineBeCleared(Uint8 yPos) const;
 
-    bool CanShapeBeCreatedAtPos(Uint8 xPos, Uint8 yPos, const Shape& shape) const;
+    bool CanShapeBeCreatedAtPos(Uint8 xPos, Uint8 yPos, const Shape* shape) const;
 
     void GetShapeTargetPos(Uint8& outXPos, Uint8& outYPos);
 

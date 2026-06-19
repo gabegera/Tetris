@@ -17,20 +17,21 @@ Game::~Game()
 
 void Game::RenderBorders() const
 {
-    const Color borderColor = GetRenderer()->GetColorPalette().borderColor;
+    SDL_Texture* borderTexture = GetRenderer()->GetBorderTexture();
+    const Color& borderColor = m_application.GetTheme()->GetBorderColor();
 
     // Top and Bottom Border
     for (int x = 0; x < m_gameWidth + 2; x++)
     {
-        GetRenderer()->DrawBlockAtPos(x, 0, borderColor);
-        GetRenderer()->DrawBlockAtPos(x, m_gameHeight + 1, borderColor);
+        GetRenderer()->DrawBlockAtPos(x, 0, borderTexture, borderColor);
+        GetRenderer()->DrawBlockAtPos(x, m_gameHeight + 1, borderTexture, borderColor);
     }
 
     // Left and Right Borders
     for (int y = 0; y < m_gameHeight; y++)
     {
-        GetRenderer()->DrawBlockAtPos(0, y + 1, borderColor);
-        GetRenderer()->DrawBlockAtPos(m_gameWidth + 1, y + 1, borderColor);
+        GetRenderer()->DrawBlockAtPos(0, y + 1, borderTexture, borderColor);
+        GetRenderer()->DrawBlockAtPos(m_gameWidth + 1, y + 1, borderTexture, borderColor);
     }
 }
 
@@ -49,7 +50,7 @@ void Game::RenderBlocks()
             continue;
         }
 
-        GetRenderer()->DrawBlockAtPos(xPositions[i] + 1, yPositions[i] + 1, blockPtrs[i]->colorID);
+        GetRenderer()->DrawBlockAtPos(xPositions[i] + 1, yPositions[i] + 1, blockPtrs[i]->m_owningShape);
     }
 }
 
@@ -58,7 +59,7 @@ void Game::RenderShapeGuide()
     Uint8 xPos;
     Uint8 yPos;
     m_blockManager.GetShapeTargetPos(xPos, yPos);
-    GetRenderer()->DrawShapeGuideAtPos(xPos, yPos, m_blockManager.GetFallingShape(), m_blockManager.GetFallingShapeColorID());
+    GetRenderer()->DrawShapeGuideAtPos(xPos, yPos, m_blockManager.GetFallingShape());
 }
 
 void Game::Start()

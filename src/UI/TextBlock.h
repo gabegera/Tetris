@@ -1,6 +1,7 @@
 #pragma once
 
 #include "UIElement.h"
+#include "../Theme.h"
 
 class TextBlock : public UIElement
 {
@@ -28,5 +29,4 @@ public:
 
     Uint32 GetFontSize() const;
 
-    const Color& GetTextColor() const;
-};
+    const Color& GetTextColor() const;};

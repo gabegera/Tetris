@@ -5,6 +5,7 @@
 
 #include "UIElement.h"
 #include "SDL3/SDL_stdinc.h"
+#include "../Theme.h"
 
 class Renderer;
 class Menu;
@@ -47,7 +48,7 @@ public:
     void SetWidth(Uint32 inWidth);
     void SetHeight(Uint32 inHeight);
 
-    bool IsSelected() const;
+    void GetBounds(Uint32& outLowerX, Uint32& outUpperX, Uint32& outLowerY, Uint32& outUpperY) const override;
 
     const std::string& GetButtonText() const;
     Uint32 GetFontSize() const;
