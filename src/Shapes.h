@@ -3,6 +3,8 @@
 #include <random>
 #include <string>
 
+#include "SDL3/SDL_stdinc.h"
+
 struct Shape
 {
     Uint8 width;
@@ -11,15 +13,7 @@ struct Shape
 
     Shape(const Uint8 inWidth, const std::string& inBlocks) : width(inWidth), blocks(inBlocks)
     {
-        if (width <= 0)
-        {
-            throw std::invalid_argument("Shape::Shape::Width must be greater than 0");
-        }
 
-        if (blocks.empty())
-        {
-            throw std::invalid_argument("Shape::Shape::Blocks cannot be empty");
-        }
     }
 
     Uint8 GetHeight() const

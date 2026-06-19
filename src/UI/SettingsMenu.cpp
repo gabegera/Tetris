@@ -23,8 +23,8 @@ SettingsMenu::SettingsMenu(Application& app) : Menu(app)
     backButton->SetVerticalAlignment(VerticalAlignment::Top);
     backButton->SetHorizontalAnchor(HorizontalAlignment::Right);
     backButton->SetVerticalAnchor(VerticalAlignment::Bottom);
-    backButton->SetXOffset(0);
-    backButton->SetYOffset(0);
+    backButton->SetXOffset(32);
+    backButton->SetYOffset(32);
     backButton->BindFunction([this]() { m_application.OpenMenu<MainMenu>(); });
 }
 

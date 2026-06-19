@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 
+#include "Shapes.h"
 #include "SDL3/SDL_stdinc.h"
 
 struct Shape;
@@ -35,7 +36,7 @@ protected:
     std::vector<const Shape*> m_shapesQueue;
 
     std::vector<Uint16> m_fallingBlockIndices;
-    const Shape* m_fallingShape = nullptr;
+    Shape m_fallingShape = Shape(0, "");
 
     std::vector<std::unique_ptr<Block>> m_blocks;
 

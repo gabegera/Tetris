@@ -191,7 +191,7 @@ bool BlockManager::CreateShapeAtPos(const Uint8 xPos, const Uint8 yPos, const Sh
     }
     m_fallingBlockIndices.shrink_to_fit();
 
-    m_fallingShape = shape;
+    m_fallingShape = *shape;
 
     return true;
 }
@@ -370,75 +370,75 @@ void BlockManager::DropShape()
 
 void BlockManager::RotateShape()
 {
-    // Uint8 cornerXPos = m_game.GetGameWidth();
-    // Uint8 cornerYPos = m_game.GetGameHeight();
-    //
-    // for (const Uint16 index : m_fallingBlockIndices)
-    // {
-    //     const Uint8 xPos = GetBlockXPosFromIndex(index);
-    //     const Uint8 yPos = GetBlockYPosFromIndex(index);
-    //
-    //     if (xPos < cornerXPos) cornerXPos = xPos;
-    //     if (yPos < cornerYPos) cornerYPos = yPos;
-    // }
-    //
-    // Shape rotatedShape;
-    // rotatedShape.width = m_fallingShape->GetHeight();
-    // rotatedShape.blocks.reserve(m_fallingShape->blocks.size());
-    //
-    // std::map<int, char> rotatedShapeIndices;
-    // for (int i = 0; i < m_fallingShape->blocks.size(); i++)
-    // {
-    //     const int shapeBlockXPos = (i % m_fallingShape->width);
-    //     const int shapeBlockYPos = -std::floor(i / m_fallingShape->width);
-    //
-    //     const int rotatedXPos = shapeBlockYPos + rotatedShape.width - 1;
-    //     const int rotatedYPos = -shapeBlockXPos;
-    //     rotatedShapeIndices.emplace(rotatedXPos + (-rotatedYPos * rotatedShape.width), m_fallingShape->blocks[i]);
-    // }
-    //
-    // for (const auto& [index, character] : rotatedShapeIndices)
-    // {
-    //     rotatedShape.blocks.push_back(character);
-    // }
-    //
-    // Uint8 smallestNumberOfNudges = 99;
-    // Uint8 newXPos = cornerXPos;
-    // Uint8 newYPos = cornerYPos;
-    // for (int yNudges = 0; yNudges <= m_maxNumberOfRotationNudges + rotatedShape.GetHeight(); yNudges++)
-    // {
-    //     for (int xNudges = -m_maxNumberOfRotationNudges; xNudges <= m_maxNumberOfRotationNudges + rotatedShape.width;
-    //          xNudges++)
-    //     {
-    //         if (xNudges + cornerXPos < 0) continue;
-    //         if (CanShapeBeCreatedAtPos(xNudges + cornerXPos, cornerYPos - yNudges, &rotatedShape))
-    //         {
-    //             const Uint8 totalNudges = yNudges + std::abs(xNudges);
-    //             if (totalNudges < smallestNumberOfNudges)
-    //             {
-    //                 smallestNumberOfNudges = totalNudges;
-    //                 newXPos = xNudges + cornerXPos;
-    //                 newYPos = cornerYPos - yNudges;
-    //             }
-    //         }
-    //     }
-    // }
-    //
-    // if (smallestNumberOfNudges == 99)
-    // {
-    //     std::cout << "BlockManager::RotateShape::Failed to rotate. Reached maximum number of nudges." << std::endl;
-    //     return;
-    // }
-    //
-    // const Shape originalShape = m_blocks[m_fallingBlockIndices[0]]->m_owningShape;
-    // DeleteShape();
-    // CreateShapeAtPos(newXPos, newYPos, &rotatedShape);
-    // for (int i = 0; i < m_fallingBlockIndices.size(); i++)
-    // {
-    //     m_blocks[i]->m_owningShape = originalShape;
-    // }
-    //
-    // m_timeSinceShapeFell = 0.0f;
+    Uint8 cornerXPos = m_game.GetGameWidth();
+    Uint8 cornerYPos = m_game.GetGameHeight();
+
+    for (const Uint16 index : m_fallingBlockIndices)
+    {
+        const Uint8 xPos = GetBlockXPosFromIndex(index);
+        const Uint8 yPos = GetBlockYPosFromIndex(index);
+
+        if (xPos < cornerXPos) cornerXPos = xPos;
+        if (yPos < cornerYPos) cornerYPos = yPos;
+    }
+
+    Shape rotatedShape(m_fallingShape.GetHeight(), "");
+    rotatedShape.blocks.reserve(m_fallingShape.blocks.size());
+
+    std::map<int, char> rotatedShapeIndices;
+    for (int i = 0; i < m_fallingShape.blocks.size(); i++)
+    {
+        const int shapeBlockXPos = (i % m_fallingShape.width);
+        const int shapeBlockYPos = -std::floor(i / m_fallingShape.width);
+
+        const int rotatedXPos = shapeBlockYPos + rotatedShape.width - 1;
+        const int rotatedYPos = -shapeBlockXPos;
+        rotatedShapeIndices.emplace(rotatedXPos + (-rotatedYPos * rotatedShape.width), m_fallingShape.blocks[i]);
+    }
+
+    for (const auto& [index, character] : rotatedShapeIndices)
+    {
+        rotatedShape.blocks.push_back(character);
+    }
+
+    Uint8 smallestNumberOfNudges = 99;
+    Uint8 newXPos = cornerXPos;
+    Uint8 newYPos = cornerYPos;
+    for (int yNudges = 0; yNudges <= m_maxNumberOfRotationNudges + rotatedShape.GetHeight(); yNudges++)
+    {
+        for (int xNudges = -m_maxNumberOfRotationNudges; xNudges <= m_maxNumberOfRotationNudges + rotatedShape.width;
+             xNudges++)
+        {
+            if (xNudges + cornerXPos < 0) continue;
+            if (CanShapeBeCreatedAtPos(xNudges + cornerXPos, cornerYPos - yNudges, &rotatedShape))
+            {
+                const Uint8 totalNudges = yNudges + std::abs(xNudges);
+                if (totalNudges < smallestNumberOfNudges)
+                {
+                    smallestNumberOfNudges = totalNudges;
+                    newXPos = xNudges + cornerXPos;
+                    newYPos = cornerYPos - yNudges;
+                }
+            }
+        }
+    }
+
+    if (smallestNumberOfNudges == 99)
+    {
+        std::cout << "BlockManager::RotateShape::Failed to rotate. Reached maximum number of nudges." << std::endl;
+        return;
+    }
+
+    const Shape* originalShape = m_blocks[m_fallingBlockIndices[0]]->m_owningShape;
+    DeleteShape();
+    CreateShapeAtPos(newXPos, newYPos, &rotatedShape);
+    for (int i = 0; i < m_fallingBlockIndices.size(); i++)
+    {
+        m_blocks[m_fallingBlockIndices[i]]->m_owningShape = originalShape;
+    }
+    m_fallingShape = rotatedShape;
+
+    m_timeSinceShapeFell = 0.0f;
 }
 
 void BlockManager::GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions,
@@ -504,7 +504,7 @@ void BlockManager::GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::ve
 
 const Shape* BlockManager::GetFallingShape() const
 {
-    return m_fallingShape;
+    return &m_fallingShape;
 }
 
 bool BlockManager::IsBlockAtPos(const Uint8 xPos, const Uint8 yPos) const
@@ -680,6 +680,11 @@ bool BlockManager::CanShapeBeCreatedAtPos(const Uint8 xPos, const Uint8 yPos, co
     for (int i = 0; i < shape->blocks.size(); i++)
     {
         if (shape->blocks[i] == ' ') continue;
+        if (shape->width <= 0)
+        {
+            std::cerr << "BlockManager::CanShapeBeCreatedAtPos::Shape width is invalid" << std::endl;
+            return false;
+        }
 
         const Uint8 shapeBlockXPos = xPos + (i % shape->width);
         const Uint8 shapeBlockYPos = yPos + std::floor((i * 1.0f) / shape->width);
@@ -710,7 +715,7 @@ void BlockManager::GetShapeTargetPos(Uint8& outXPos, Uint8& outYPos)
     Uint8 largestYPos = cornerYPos;
     for (int i = 1; i < m_game.GetGameHeight() - cornerYPos; i++)
     {
-        if (CanShapeBeCreatedAtPos(cornerXPos, cornerYPos + i, m_fallingShape))
+        if (CanShapeBeCreatedAtPos(cornerXPos, cornerYPos + i, &m_fallingShape))
         {
             largestYPos = cornerYPos + i;
         }
