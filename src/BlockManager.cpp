@@ -726,11 +726,12 @@ void BlockManager::GetShapeTargetPos(Uint8& outXPos, Uint8& outYPos)
         }
         else
         {
-            outXPos = cornerXPos;
-            outYPos = largestYPos;
-            return;
+            break;
         }
     }
+
+    outXPos = cornerXPos;
+    outYPos = largestYPos;
 }
 
 std::vector<Uint8> BlockManager::GetClearableLines() const
