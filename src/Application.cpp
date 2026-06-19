@@ -62,8 +62,13 @@ void Application::ProcessEvents()
                     OnDownInput();
                     break;
                 case SDLK_SPACE:
+                case SDLK_E:
                 case SDLK_RETURN:
-                    OnRotateInput();
+                    OnRotateClockwiseInput();
+                    break;
+                case SDLK_LALT:
+                case SDLK_Q:
+                    OnRotateCounterClockwiseInput();
                     break;
                 default:
                     break;
@@ -90,7 +95,9 @@ void Application::ProcessEvents()
                     OnDownInput();
                     break;
                 case SDL_GAMEPAD_BUTTON_SOUTH:
-                    OnRotateInput();
+                    OnRotateClockwiseInput();
+                case SDL_GAMEPAD_BUTTON_EAST:
+                    OnRotateCounterClockwiseInput();
                 default:
                     break;
             }
@@ -163,15 +170,27 @@ void Application::OnDownInput()
     }
 }
 
-void Application::OnRotateInput()
+void Application::OnRotateClockwiseInput()
 {
     if (IsGameRunning())
     {
-        m_game->GetBlockManager()->RotateShape();
+        m_game->GetBlockManager()->RotateShapeClockwise();
     }
     else if (m_activeMenu)
     {
         m_activeMenu->ReceiveSelectInput();
+    }
+}
+
+void Application::OnRotateCounterClockwiseInput()
+{
+    if (IsGameRunning())
+    {
+        m_game->GetBlockManager()->RotateShapeCounterClockwise();
+    }
+    else if (m_activeMenu)
+    {
+
     }
 }
 

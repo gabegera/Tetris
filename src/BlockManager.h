@@ -84,7 +84,8 @@ public:
     void MoveShapeRight();
     bool MoveShapeDown();
     void DropShape();
-    void RotateShape();
+    void RotateShapeClockwise();
+    void RotateShapeCounterClockwise();
 
     void GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
     void GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;

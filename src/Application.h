@@ -33,7 +33,8 @@ protected:
     void OnRightInput();
     void OnUpInput();
     void OnDownInput();
-    void OnRotateInput();
+    void OnRotateClockwiseInput();
+    void OnRotateCounterClockwiseInput();
     void OnMouseMoved();
     void OnLeftMouseButtonUp();
 
