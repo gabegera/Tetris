@@ -1,8 +1,8 @@
 # Tetris
 Game of Tetris made using the SDL Library in C++.
 
-<img width="965" height="1766" alt="2026-06-20-121857_hyprshot" src="https://github.com/user-attachments/assets/e684112d-1011-4109-a257-6d86cd9641b0" />
-<img width="970" height="1765" alt="2026-06-20-122127_hyprshot" src="https://github.com/user-attachments/assets/0582df80-03cb-4dea-9469-06b936f661f1" />
+<img width="570" height="1045" alt="Screenshot 2026-06-20 124107_proc" src="https://github.com/user-attachments/assets/a2d599f3-f77e-4794-aefb-09b23fbe686e" />
+<img width="576" height="1056" alt="Screenshot 2026-06-20 124143_proc" src="https://github.com/user-attachments/assets/6c82c449-cdd6-4d5e-8930-936de139230f" />
 
 # Controls
 Keyboard:
