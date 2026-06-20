@@ -96,8 +96,10 @@ void Application::ProcessEvents()
                     break;
                 case SDL_GAMEPAD_BUTTON_SOUTH:
                     OnRotateClockwiseInput();
+                    break;
                 case SDL_GAMEPAD_BUTTON_EAST:
                     OnRotateCounterClockwiseInput();
+                    break;
                 default:
                     break;
             }
@@ -253,7 +255,7 @@ void Application::Start()
         return;
     }
 
-    m_theme.Init();
+    m_theme->Init();
 
     m_renderer.Init();
 
@@ -321,5 +323,5 @@ Game* Application::GetGame() const
 
 const Theme* Application::GetTheme() const
 {
-    return &m_theme;
+    return m_theme.get();
 }

@@ -13,6 +13,13 @@ Theme::Theme()
 
 Theme::~Theme()
 {
+    for (auto [shape, surface]: m_shapeSurfaces)
+    {
+        SDL_DestroySurface(surface);
+    }
+    SDL_DestroySurface(m_borderSurface);
+
+    TTF_CloseFont(m_font);
 
 }
 
@@ -20,7 +27,7 @@ void Theme::Init()
 {
     constexpr bool autoDeleteIO = true;
 
-    SDL_IOStream* textureIO = SDL_IOFromConstMem(b::embed<"res/Default_Block_Texture.png">().data(), b::embed<"res/Default_Block_Texture.png">().length());
+    SDL_IOStream* textureIO = SDL_IOFromConstMem(b::embed<"res/Default-Block-Texture.png">().data(), b::embed<"res/Default-Block-Texture.png">().length());
     SDL_Surface* defaultTextureSurface = SDL_LoadPNG_IO(textureIO, autoDeleteIO);
 
     for (const Shape* shape : ClassicShapes::Get())
@@ -29,8 +36,13 @@ void Theme::Init()
     }
     m_borderSurface = defaultTextureSurface;
 
-    SDL_IOStream* fontIO = SDL_IOFromConstMem(b::embed<"res/Default_Font.ttf">().data(), b::embed<"res/Default_Font.ttf">().length());
+    SDL_IOStream* fontIO = SDL_IOFromConstMem(b::embed<"res/Default-Font.ttf">().data(), b::embed<"res/Default-Font.ttf">().length());
     m_font = TTF_OpenFontIO(fontIO, autoDeleteIO, m_fontSize);
+}
+
+const std::string& Theme::GetName() const
+{
+    return m_themeName;
 }
 
 Color Theme::GetShapeColor(const Shape* inShape) const

@@ -13,7 +13,7 @@ class Theme
 {
 public:
     Theme();
-    ~Theme();
+    virtual ~Theme();
 
 protected:
     std::string m_themeName = "Classic";
@@ -38,7 +38,9 @@ protected:
     Uint8 m_fontSize = 16;
 
 public:
-    void Init();
+    virtual void Init();
+
+    const std::string& GetName() const;
 
     Color GetShapeColor(const Shape* inShape) const;
     const Color& GetBorderColor() const;

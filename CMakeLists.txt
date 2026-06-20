@@ -80,6 +80,8 @@ add_executable(Tetris src/main.cpp
         src/UI/UIAlignment.h
         src/UI/SettingsMenu.cpp
         src/UI/SettingsMenu.h
+        src/GameboyTheme.cpp
+        src/GameboyTheme.h
 )
 
 target_link_libraries(Tetris PRIVATE
@@ -93,5 +95,14 @@ target_compile_definitions(Tetris PRIVATE
         $<$<CONFIG:Release>:NDEBUG>
 )
 
-b_embed(Tetris res/Default_Block_Texture.png)
-b_embed(Tetris res/Default_Font.ttf)
+b_embed(Tetris res/Default-Block-Texture.png)
+b_embed(Tetris res/Default-Font.ttf)
+
+b_embed(Tetris res/Gameboy/I-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/J-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/L-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/O-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/S-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/T-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/Z-Texture-Gameboy.png)
+b_embed(Tetris res/Gameboy/Border-Texture-Gameboy.png)

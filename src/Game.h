@@ -20,6 +20,7 @@ protected:
     Application& m_application;
     BlockManager m_blockManager;
 
+    void RenderBackground() const;
     void RenderBorders() const;
     void RenderBlocks();
     void RenderShapeGuide();

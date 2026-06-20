@@ -15,6 +15,11 @@ Game::~Game()
 
 }
 
+void Game::RenderBackground() const
+{
+    GetRenderer()->DrawRectangle(GetRenderer()->GetRenderWidth(), GetRenderer()->GetRenderHeight(), 0, 0, m_application.GetTheme()->GetBackgroundColor(), m_application.GetTheme()->GetBackgroundColor());
+}
+
 void Game::RenderBorders() const
 {
     SDL_Texture* borderTexture = GetRenderer()->GetBorderTexture();
@@ -78,6 +83,7 @@ void Game::Update(const float deltaTime)
 {
     m_blockManager.Update(deltaTime);
 
+    RenderBackground();
     RenderBorders();
     RenderShapeGuide();
     RenderBlocks();

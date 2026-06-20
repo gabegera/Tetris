@@ -13,7 +13,7 @@ public:
     ~Application();
 
 protected:
-    Theme m_theme;
+    std::unique_ptr<Theme> m_theme = std::make_unique<Theme>();
 
     std::unique_ptr<Menu> m_activeMenu;
     std::unique_ptr<Game> m_game;
@@ -62,6 +62,14 @@ public:
 
     Renderer* GetRenderer();
     Game* GetGame() const;
+
+    template<typename T>
+    void SetTheme() requires std::is_base_of_v<Theme, T>
+    {
+        m_theme = std::make_unique<T>();
+        m_theme->Init();
+        m_renderer.CreateTexturesFromTheme();
+    }
 
     const Theme* GetTheme() const;
 };

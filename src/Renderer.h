@@ -35,8 +35,6 @@ protected:
 
     void ResetDrawColor() const;
 
-    void CreateTexturesFromTheme();
-
 public:
     void Init();
     void Stop() const;
@@ -47,6 +45,8 @@ public:
     void SetRendererSizeInGameDimensions(Uint16 gameWidth, Uint16 gameHeight) const;
 
     void ClearRenderer() const;
+
+    void CreateTexturesFromTheme();
 
     void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, const Shape* owningShape) const;
     void DrawBlockAtPos(unsigned int xPos, unsigned int yPos, SDL_Texture* texture, const Color& color) const;

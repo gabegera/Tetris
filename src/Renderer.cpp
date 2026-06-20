@@ -69,6 +69,8 @@ void Renderer::CreateTexturesFromTheme()
         std::cerr << "Renderer::CreateTexturesFromTheme::Failed to create border texture" << std::endl;
     }
 
+    SDL_SetTextureScaleMode(borderTexture, SDL_SCALEMODE_PIXELART);
+
     m_borderTexture = borderTexture;
 }
 
@@ -161,7 +163,7 @@ void Renderer::Init()
         m_application.Stop();
         return;
     }
-    SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+    ResetDrawColor();
 
     m_textEngine = TTF_CreateRendererTextEngine(m_renderer);
     if (!m_textEngine)
