@@ -52,7 +52,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(battery-embed)
 
-add_executable(Tetris src/main.cpp
+add_executable(Tetris WIN32 src/main.cpp
         src/Game.cpp
         src/Game.h
         src/BlockManager.cpp
