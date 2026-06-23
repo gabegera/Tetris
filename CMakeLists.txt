@@ -82,6 +82,10 @@ add_executable(Tetris WIN32 src/main.cpp
         src/UI/SettingsMenu.h
         src/GameboyTheme.cpp
         src/GameboyTheme.h
+        src/InputHandler.cpp
+        src/InputHandler.h
+        src/InputAction.cpp
+        src/InputAction.h
 )
 
 target_link_libraries(Tetris PRIVATE

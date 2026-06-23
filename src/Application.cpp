@@ -6,7 +6,7 @@
 #include "SDL3/SDL_events.h"
 #include "UI/MainMenu.h"
 
-Application::Application() : m_renderer(*this)
+Application::Application() : m_inputHandler(*this), m_renderer(*this)
 {
 
 }
@@ -28,195 +28,38 @@ void Application::ProcessEvents()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
-        if (event.type == SDL_EVENT_QUIT)
+        switch (event.type)
         {
+        case SDL_EVENT_QUIT:
             Stop();
-        }
-
-        if (event.type == SDL_EVENT_GAMEPAD_ADDED)
-        {
+            break;
+        case SDL_EVENT_GAMEPAD_ADDED:
             SDL_OpenGamepad(event.gdevice.which);
+            break;
+        case SDL_EVENT_KEY_DOWN:
+            m_inputHandler.KeyDown(event.key.key);
+            break;
+        case SDL_EVENT_KEY_UP:
+            m_inputHandler.KeyUp(event.key.key);
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            m_inputHandler.MouseButtonDown(event.button.button);
+            break;
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+            m_inputHandler.MouseButtonUp(event.button.button);
+            break;
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+            m_inputHandler.GamepadButtonDown(event.gbutton.button);
+            break;
+        case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            m_inputHandler.GamepadButtonUp(event.gbutton.button);
+            break;
+        case SDL_EVENT_MOUSE_MOTION:
+            m_inputHandler.MouseMoved();
+            break;
+        default:
+            break;
         }
-
-        if (event.type == SDL_EVENT_KEY_DOWN)
-        {
-            switch (event.key.key)
-            {
-                case SDLK_ESCAPE:
-                    OnExitInput();
-                    break;
-                case SDLK_LEFT:
-                case SDLK_A:
-                    OnLeftInput();
-                    break;
-                case SDLK_RIGHT:
-                case SDLK_D:
-                    OnRightInput();
-                    break;
-                case SDLK_UP:
-                case SDLK_W:
-                    OnUpInput();
-                    break;
-                case SDLK_DOWN:
-                case SDLK_S:
-                    OnDownInput();
-                    break;
-                case SDLK_SPACE:
-                case SDLK_E:
-                case SDLK_RETURN:
-                    OnRotateClockwiseInput();
-                    break;
-                case SDLK_LALT:
-                case SDLK_Q:
-                    OnRotateCounterClockwiseInput();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (event.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN)
-        {
-            switch (event.gbutton.button)
-            {
-                case SDL_GAMEPAD_BUTTON_START:
-                    OnExitInput();
-                    break;
-                case SDL_GAMEPAD_BUTTON_DPAD_LEFT:
-                    OnLeftInput();
-                    break;
-                case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
-                    OnRightInput();
-                    break;
-                case SDL_GAMEPAD_BUTTON_DPAD_UP:
-                    OnUpInput();
-                    break;
-                case SDL_GAMEPAD_BUTTON_DPAD_DOWN:
-                    OnDownInput();
-                    break;
-                case SDL_GAMEPAD_BUTTON_SOUTH:
-                    OnRotateClockwiseInput();
-                    break;
-                case SDL_GAMEPAD_BUTTON_EAST:
-                    OnRotateCounterClockwiseInput();
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        if (event.type == SDL_EVENT_MOUSE_MOTION)
-        {
-            OnMouseMoved();
-        }
-
-        if (event.type == SDL_EVENT_MOUSE_BUTTON_UP)
-        {
-            switch (event.button.button)
-            {
-            case SDL_BUTTON_LEFT:
-                OnLeftMouseButtonUp();
-                break;
-            default:
-                break;
-            }
-        }
-    }
-}
-
-void Application::OnExitInput()
-{
-    if (m_game)
-    {
-        StopGame();
-    }
-}
-
-void Application::OnLeftInput()
-{
-    if (IsGameRunning())
-    {
-        m_game->GetBlockManager()->MoveShapeLeft();
-    }
-}
-
-void Application::OnRightInput()
-{
-    if (IsGameRunning())
-    {
-        m_game->GetBlockManager()->MoveShapeRight();
-    }
-}
-
-void Application::OnUpInput()
-{
-    if (IsGameRunning())
-    {
-        m_game->GetBlockManager()->DropShape();
-    }
-    else if (m_activeMenu)
-    {
-        m_activeMenu->ReceiveUpInput();
-    }
-}
-
-void Application::OnDownInput()
-{
-    if (IsGameRunning())
-    {
-        m_game->GetBlockManager()->MoveShapeDown();
-    }
-    else if (m_activeMenu)
-    {
-        m_activeMenu->ReceiveDownInput();
-    }
-}
-
-void Application::OnRotateClockwiseInput()
-{
-    if (IsGameRunning())
-    {
-        m_game->GetBlockManager()->RotateShapeClockwise();
-    }
-    else if (m_activeMenu)
-    {
-        m_activeMenu->ReceiveSelectInput();
-    }
-}
-
-void Application::OnRotateCounterClockwiseInput()
-{
-    if (IsGameRunning())
-    {
-        m_game->GetBlockManager()->RotateShapeCounterClockwise();
-    }
-    else if (m_activeMenu)
-    {
-
-    }
-}
-
-void Application::OnMouseMoved()
-{
-    if (IsGameRunning())
-    {
-
-    }
-    else if (m_activeMenu)
-    {
-        m_activeMenu->ReceiveMouseInput();
-    }
-}
-
-void Application::OnLeftMouseButtonUp()
-{
-    if (IsGameRunning())
-    {
-
-    }
-    else if (m_activeMenu)
-    {
-        m_activeMenu->ReceiveLeftMouseButtonUpInput();
     }
 }
 
@@ -275,6 +118,8 @@ void Application::Update()
 
     ProcessEvents();
 
+    m_inputHandler.Update(m_deltaTime);
+
     m_renderer.ClearRenderer();
 
     if (m_activeMenu)
@@ -314,6 +159,11 @@ float Application::GetDeltaTime() const
 Renderer* Application::GetRenderer()
 {
     return &m_renderer;
+}
+
+Menu* Application::GetActiveMenu() const
+{
+    return m_activeMenu.get();
 }
 
 Game* Application::GetGame() const

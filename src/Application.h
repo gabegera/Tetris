@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Game.h"
+#include "InputHandler.h"
 #include "Renderer.h"
 #include "SDL3/SDL_stdinc.h"
 
@@ -13,11 +14,13 @@ public:
     ~Application();
 
 protected:
+    InputHandler m_inputHandler;
+    Renderer m_renderer;
+
     std::unique_ptr<Theme> m_theme = std::make_unique<Theme>();
 
     std::unique_ptr<Menu> m_activeMenu;
     std::unique_ptr<Game> m_game;
-    Renderer m_renderer;
 
     bool m_isRunning = true;
 
@@ -27,16 +30,6 @@ protected:
     void UpdateDeltaTime();
 
     void ProcessEvents();
-
-    void OnExitInput();
-    void OnLeftInput();
-    void OnRightInput();
-    void OnUpInput();
-    void OnDownInput();
-    void OnRotateClockwiseInput();
-    void OnRotateCounterClockwiseInput();
-    void OnMouseMoved();
-    void OnLeftMouseButtonUp();
 
 public:
     void Start();
@@ -61,6 +54,9 @@ public:
     float GetDeltaTime() const;
 
     Renderer* GetRenderer();
+
+    Menu* GetActiveMenu() const;
+
     Game* GetGame() const;
 
     template<typename T>

@@ -33,18 +33,16 @@ protected:
 
     Button* CreateButton();
 
-    void SelectNextElement();
-    void SelectPreviousElement();
-
 public:
     virtual void Init();
     virtual void Update(float deltaTime);
 
-    virtual void ReceiveUpInput();
-    virtual void ReceiveDownInput();
-    virtual void ReceiveSelectInput();
-    virtual void ReceiveMouseInput();
-    virtual void ReceiveLeftMouseButtonUpInput();
+    void SelectNextElement();
+    void SelectPreviousElement();
+    void TriggerSelectedElement() const;
+    void TriggerElementBelowCursor();
+
+    void CheckMousePosition();
 
     bool SetVisibility(bool input);
 
