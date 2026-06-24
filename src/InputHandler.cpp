@@ -154,78 +154,28 @@ InputAction* InputHandler::CreateInputAction(const std::string& inName)
     return &m_actions.emplace_back(InputAction(inName));
 }
 
-void InputHandler::TriggerInputAction(const std::string& actionName) const
+void InputHandler::AddBoundActionToQueue(const std::string& actionName)
 {
     try
     {
-        m_actionBindings.at(actionName)();
+        m_actionQueue.emplace_back(m_actionBindings.at(actionName));
     }
     catch (const std::out_of_range& error)
     {
-        std::cerr << "InputHandler::TriggerInputAction::Unable to find action: " << actionName << " in bindings" << std::endl;
+        std::cerr << "InputHandler::AddBoundActionToQueue::Unable to find bound action: " << actionName << " in bindings" << std::endl;
     }
 }
 
-void InputHandler::TriggerHeldInputs()
+void InputHandler::ExecuteQueuedActions()
 {
-    // Key Inputs
-    for (auto [key, heldDuration] : m_heldKeys)
+    for (int i = 0; i < m_actionQueue.size(); i++)
     {
-        for (InputAction& action : m_actions)
-        {
-            if (!action.IsInputTypeAssignedToKey(key, InputType::Held)) continue;
-
-            action.AddToRepeatDelayTracker(m_app.GetDeltaTime());
-
-            if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
-            {
-                TriggerInputAction(action.GetName());
-                action.ClearRepeatDelayTracker();
-            }
-        }
+        m_actionQueue.back()();
+        m_actionQueue.pop_back();
     }
-
-    // Mouse Button Inputs
-    for (auto [button, heldDuration] : m_heldMouseButtons)
-    {
-        if (heldDuration <= 0) continue;
-
-        for (InputAction action : m_actions)
-        {
-            if (!action.IsInputTypeAssignedToMouseButton(button, InputType::Held)) continue;
-
-            action.AddToRepeatDelayTracker(m_app.GetDeltaTime());
-
-            if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
-            {
-                TriggerInputAction(action.GetName());
-                action.ClearRepeatDelayTracker();
-            }
-        }
-    }
-
-    // Gamepad Button Inputs
-    for (auto [button, heldDuration] : m_heldGamepadButtons)
-    {
-        if (heldDuration <= 0) continue;
-
-        for (InputAction action : m_actions)
-        {
-            if (!action.IsInputTypeAssignedToGamepadButton(button, InputType::Held)) continue;
-
-            action.AddToRepeatDelayTracker(m_app.GetDeltaTime());
-
-            if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
-            {
-                TriggerInputAction(action.GetName());
-                action.ClearRepeatDelayTracker();
-            }
-        }
-    }
-
 }
 
-void InputHandler::Update(const float deltaTime)
+void InputHandler::UpdateHeldInputs(const float deltaTime)
 {
     for (auto [key, heldDuration] : m_heldKeys)
     {
@@ -242,7 +192,69 @@ void InputHandler::Update(const float deltaTime)
         if (IsKeyBeingHeld(button)) m_heldGamepadButtons[button] = heldDuration + deltaTime;
     }
 
-    TriggerHeldInputs();
+
+    // Key Inputs
+    for (auto [key, heldDuration] : m_heldKeys)
+    {
+        for (InputAction& action : m_actions)
+        {
+            if (!action.IsInputTypeAssignedToKey(key, InputType::Held)) continue;
+
+            action.AddToRepeatDelayTracker(deltaTime);
+
+            if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
+            {
+                AddBoundActionToQueue(action.GetName());
+                action.ClearRepeatDelayTracker();
+            }
+        }
+    }
+
+    // Mouse Button Inputs
+    for (auto [button, heldDuration] : m_heldMouseButtons)
+    {
+        if (heldDuration <= 0) continue;
+
+        for (InputAction action : m_actions)
+        {
+            if (!action.IsInputTypeAssignedToMouseButton(button, InputType::Held)) continue;
+
+            action.AddToRepeatDelayTracker(deltaTime);
+
+            if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
+            {
+                AddBoundActionToQueue(action.GetName());
+                action.ClearRepeatDelayTracker();
+            }
+        }
+    }
+
+    // Gamepad Button Inputs
+    for (auto [button, heldDuration] : m_heldGamepadButtons)
+    {
+        if (heldDuration <= 0) continue;
+
+        for (InputAction action : m_actions)
+        {
+            if (!action.IsInputTypeAssignedToGamepadButton(button, InputType::Held)) continue;
+
+            action.AddToRepeatDelayTracker(deltaTime);
+
+            if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
+            {
+                AddBoundActionToQueue(action.GetName());
+                action.ClearRepeatDelayTracker();
+            }
+        }
+    }
+
+}
+
+void InputHandler::Update(const float deltaTime)
+{
+    UpdateHeldInputs(deltaTime);
+
+    ExecuteQueuedActions();
 }
 
 void InputHandler::KeyUp(const SDL_Keycode key)
@@ -256,7 +268,7 @@ void InputHandler::KeyUp(const SDL_Keycode key)
     {
         if (action.IsInputTypeAssignedToKey(key, InputType::Released))
         {
-            TriggerInputAction(action.GetName());
+            AddBoundActionToQueue(action.GetName());
         }
 
         action.ClearRepeatDelayTracker();
@@ -276,7 +288,7 @@ void InputHandler::KeyDown(const SDL_Keycode key)
     {
         if (action.IsInputTypeAssignedToKey(key, InputType::Pressed))
         {
-            TriggerInputAction(action.GetName());
+            AddBoundActionToQueue(action.GetName());
         }
     }
 }
@@ -292,7 +304,7 @@ void InputHandler::MouseButtonUp(const Uint8 button)
     {
         if (action.IsInputTypeAssignedToMouseButton(button, InputType::Released))
         {
-            TriggerInputAction(action.GetName());
+            AddBoundActionToQueue(action.GetName());
         }
     }
 }
@@ -310,7 +322,7 @@ void InputHandler::MouseButtonDown(const Uint8 button)
     {
         if (action.IsInputTypeAssignedToMouseButton(button, InputType::Pressed))
         {
-            TriggerInputAction(action.GetName());
+            AddBoundActionToQueue(action.GetName());
         }
     }
 }
@@ -331,7 +343,7 @@ void InputHandler::GamepadButtonUp(const Uint8 button)
     {
         if (action.IsInputTypeAssignedToGamepadButton(button, InputType::Released))
         {
-            TriggerInputAction(action.GetName());
+            AddBoundActionToQueue(action.GetName());
         }
     }
 }
@@ -349,7 +361,7 @@ void InputHandler::GamepadButtonDown(const Uint8 button)
     {
         if (action.IsInputTypeAssignedToGamepadButton(button, InputType::Pressed))
         {
-            TriggerInputAction(action.GetName());
+            AddBoundActionToQueue(action.GetName());
         }
     }
 }

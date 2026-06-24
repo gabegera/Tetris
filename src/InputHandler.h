@@ -22,11 +22,15 @@ protected:
 
     std::vector<InputAction> m_actions;
     std::unordered_map<std::string, std::function<void()>> m_actionBindings;
+    std::vector<std::function<void()>> m_actionQueue;
 
     InputAction* CreateInputAction(const std::string& inName);
 
-    void TriggerInputAction(const std::string& actionName) const;
-    void TriggerHeldInputs();
+    void UpdateHeldInputs(float deltaTime);
+
+    void AddBoundActionToQueue(const std::string& actionName);
+
+    void ExecuteQueuedActions();
 
 public:
     void Update(float deltaTime);
