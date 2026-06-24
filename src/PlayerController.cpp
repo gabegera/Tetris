@@ -7,7 +7,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_exitAction = GetInputHandler()->CreateInputAction("IA_Exit");
     m_exitAction->AssignKey(SDLK_ESCAPE, InputType::Pressed);
     m_exitAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_START, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_exitAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_exitAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -22,7 +22,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_moveShapeRightAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT, InputType::Pressed);
     m_moveShapeRightAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT, InputType::Held);
     m_moveShapeRightAction->SetRepeatDelay(0.1f);
-    GetInputHandler()->BindFunctionToAction(m_moveShapeRightAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_moveShapeRightAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -37,7 +37,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_moveShapeLeftAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT, InputType::Pressed);
     m_moveShapeLeftAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT, InputType::Held);
     m_moveShapeLeftAction->SetRepeatDelay(0.1f);
-    GetInputHandler()->BindFunctionToAction(m_moveShapeLeftAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_moveShapeLeftAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -52,7 +52,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_moveShapeDownAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Pressed);
     m_moveShapeDownAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Held);
     m_moveShapeDownAction->SetRepeatDelay(0.1f);
-    GetInputHandler()->BindFunctionToAction(m_moveShapeDownAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_moveShapeDownAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -63,7 +63,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_dropShapeAction->AssignKey(SDLK_W, InputType::Pressed);
     m_dropShapeAction->AssignKey(SDLK_UP, InputType::Pressed);
     m_dropShapeAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_UP, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_dropShapeAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_dropShapeAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -74,7 +74,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_rotateClockwiseAction->AssignKey(SDLK_SPACE, InputType::Pressed);
     m_rotateClockwiseAction->AssignKey(SDLK_E, InputType::Pressed);
     m_rotateClockwiseAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_SOUTH, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_rotateClockwiseAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_rotateClockwiseAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -85,7 +85,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_rotateCounterClockwiseAction->AssignKey(SDLK_LALT, InputType::Pressed);
     m_rotateCounterClockwiseAction->AssignKey(SDLK_Q, InputType::Pressed);
     m_rotateCounterClockwiseAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_EAST, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_rotateCounterClockwiseAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_rotateCounterClockwiseAction->GetID(),
         [this]()
         {
             if (!m_app.IsGameRunning()) return;
@@ -96,7 +96,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_selectNextUIElementAction->AssignKey(SDLK_S, InputType::Pressed);
     m_selectNextUIElementAction->AssignKey(SDLK_DOWN, InputType::Pressed);
     m_selectNextUIElementAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_selectNextUIElementAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_selectNextUIElementAction->GetID(),
         [this]()
         {
             if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
@@ -107,7 +107,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_selectPreviousUIElementAction->AssignKey(SDLK_W, InputType::Pressed);
     m_selectPreviousUIElementAction->AssignKey(SDLK_UP, InputType::Pressed);
     m_selectPreviousUIElementAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_selectPreviousUIElementAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_selectPreviousUIElementAction->GetID(),
         [this]()
         {
             if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
@@ -118,7 +118,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
     m_triggerUIElementAction->AssignKey(SDLK_SPACE, InputType::Pressed);
     m_triggerUIElementAction->AssignKey(SDLK_RETURN, InputType::Pressed);
     m_triggerUIElementAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_SOUTH, InputType::Pressed);
-    GetInputHandler()->BindFunctionToAction(m_triggerUIElementAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_triggerUIElementAction->GetID(),
         [this]()
         {
             if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
@@ -127,7 +127,7 @@ PlayerController::PlayerController(Application& app) : m_app(app)
 
     m_clickUIElementAction = GetInputHandler()->CreateInputAction("IA_ClickUIElement");
     m_clickUIElementAction->AssignMouseButton(SDL_BUTTON_LEFT, InputType::Released);
-    GetInputHandler()->BindFunctionToAction(m_clickUIElementAction->GetName(),
+    GetInputHandler()->BindFunctionToAction(m_clickUIElementAction->GetID(),
         [this]()
         {
             if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;

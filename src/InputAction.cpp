@@ -2,14 +2,14 @@
 
 #include <ranges>
 
-InputAction::InputAction(const std::string& inName) : m_name(inName)
+InputAction::InputAction(const std::string& inName) : m_id(m_idCounter++), m_name(inName)
 {
 
 }
 
 auto InputAction::operator<=>(const InputAction& other) const
 {
-    return m_name <=> other.m_name;
+    return m_id <=> other.m_id;
 }
 
 void InputAction::AssignKey(const SDL_Keycode key, const InputType inputType)
@@ -45,6 +45,11 @@ void InputAction::AddToRepeatDelayTracker(const float inTime)
 void InputAction::ClearRepeatDelayTracker()
 {
     m_repeatDelayTracker = 0.0f;
+}
+
+Uint8 InputAction::GetID() const
+{
+    return m_id;
 }
 
 const std::string& InputAction::GetName() const

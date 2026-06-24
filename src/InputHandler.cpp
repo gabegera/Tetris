@@ -15,23 +15,23 @@ InputHandler::~InputHandler()
 
 }
 
-void InputHandler::AddBoundActionToQueue(const std::string& actionName)
+void InputHandler::AddBoundActionToQueue(const Uint16 actionID)
 {
-    try
-    {
-        m_actionQueue.emplace_back(m_actionBindings.at(actionName));
-    }
-    catch (const std::out_of_range& error)
-    {
-        std::cerr << "InputHandler::AddBoundActionToQueue::Unable to find bound action: " << actionName << " in bindings" << std::endl;
-    }
+    m_actionQueue.emplace_back(actionID);
 }
 
 void InputHandler::ExecuteQueuedActions()
 {
     for (int i = 0; i < m_actionQueue.size(); i++)
     {
-        m_actionQueue.back()();
+        try
+        {
+            m_actionBindings.at(m_actionQueue.back())();
+        }
+        catch (const std::out_of_range& error)
+        {
+            std::cerr << "InputHandler::ExecuteQueuedActions::Unable to find action binding with the ID: " << m_actionQueue.back() << std::endl;
+        }
         m_actionQueue.pop_back();
     }
 }
@@ -57,7 +57,7 @@ void InputHandler::UpdateHeldInputs(const float deltaTime)
     // Key Inputs
     for (auto [key, heldDuration] : m_heldKeys)
     {
-        for (InputAction& action : m_actions)
+        for (InputAction& action : m_actions | std::views::values)
         {
             if (!action.IsInputTypeAssignedToKey(key, InputType::Held)) continue;
 
@@ -65,7 +65,7 @@ void InputHandler::UpdateHeldInputs(const float deltaTime)
 
             if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
             {
-                AddBoundActionToQueue(action.GetName());
+                AddBoundActionToQueue(action.GetID());
                 action.ClearRepeatDelayTracker();
             }
         }
@@ -76,7 +76,7 @@ void InputHandler::UpdateHeldInputs(const float deltaTime)
     {
         if (heldDuration <= 0) continue;
 
-        for (InputAction action : m_actions)
+        for (InputAction& action : m_actions | std::views::values)
         {
             if (!action.IsInputTypeAssignedToMouseButton(button, InputType::Held)) continue;
 
@@ -84,7 +84,7 @@ void InputHandler::UpdateHeldInputs(const float deltaTime)
 
             if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
             {
-                AddBoundActionToQueue(action.GetName());
+                AddBoundActionToQueue(action.GetID());
                 action.ClearRepeatDelayTracker();
             }
         }
@@ -95,7 +95,7 @@ void InputHandler::UpdateHeldInputs(const float deltaTime)
     {
         if (heldDuration <= 0) continue;
 
-        for (InputAction action : m_actions)
+        for (InputAction& action : m_actions | std::views::values)
         {
             if (!action.IsInputTypeAssignedToGamepadButton(button, InputType::Held)) continue;
 
@@ -103,7 +103,7 @@ void InputHandler::UpdateHeldInputs(const float deltaTime)
 
             if (heldDuration >= action.GetHoldDuration() && action.WasRepeatDelayPassed())
             {
-                AddBoundActionToQueue(action.GetName());
+                AddBoundActionToQueue(action.GetID());
                 action.ClearRepeatDelayTracker();
             }
         }
@@ -120,13 +120,21 @@ void InputHandler::Update(const float deltaTime)
 
 InputAction* InputHandler::CreateInputAction(const std::string& inName)
 {
-    if (GetInputAction(inName))
+    if (GetInputActionByName(inName))
     {
         std::cerr << "InputHandler::CreateInputAction::Action with the name " << inName << " already exists." << std::endl;
         return nullptr;
     }
 
-    return &m_actions.emplace_back(InputAction(inName));
+    InputAction newAction(inName);
+    auto [iterator, wasSuccessful] = m_actions.try_emplace(newAction.GetID(), newAction);
+    if (!wasSuccessful)
+    {
+        std::cerr << "InputHandler::CreateInputAction::Failed to create action with the name " << inName << std::endl;
+        return nullptr;
+    }
+
+    return &iterator->second;
 }
 
 void InputHandler::KeyUp(const SDL_Keycode key)
@@ -136,11 +144,11 @@ void InputHandler::KeyUp(const SDL_Keycode key)
 
     m_heldKeys.erase(key);
 
-    for (InputAction action : m_actions)
+    for (InputAction& action : m_actions | std::views::values)
     {
         if (action.IsInputTypeAssignedToKey(key, InputType::Released))
         {
-            AddBoundActionToQueue(action.GetName());
+            AddBoundActionToQueue(action.GetID());
         }
 
         action.ClearRepeatDelayTracker();
@@ -156,11 +164,11 @@ void InputHandler::KeyDown(const SDL_Keycode key)
         m_heldKeys.try_emplace(key, 0.0f);
     }
 
-    for (InputAction action : m_actions)
+    for (const InputAction& action : m_actions | std::views::values)
     {
         if (action.IsInputTypeAssignedToKey(key, InputType::Pressed))
         {
-            AddBoundActionToQueue(action.GetName());
+            AddBoundActionToQueue(action.GetID());
         }
     }
 }
@@ -172,12 +180,14 @@ void InputHandler::MouseButtonUp(const Uint8 button)
 
     m_heldMouseButtons.erase(button);
 
-    for (InputAction action : m_actions)
+    for (InputAction& action : m_actions | std::views::values)
     {
         if (action.IsInputTypeAssignedToMouseButton(button, InputType::Released))
         {
-            AddBoundActionToQueue(action.GetName());
+            AddBoundActionToQueue(action.GetID());
         }
+
+        action.ClearRepeatDelayTracker();
     }
 }
 
@@ -190,11 +200,11 @@ void InputHandler::MouseButtonDown(const Uint8 button)
         m_heldMouseButtons.try_emplace(button, 0.0f);
     }
 
-    for (InputAction action : m_actions)
+    for (const InputAction& action : m_actions | std::views::values)
     {
         if (action.IsInputTypeAssignedToMouseButton(button, InputType::Pressed))
         {
-            AddBoundActionToQueue(action.GetName());
+            AddBoundActionToQueue(action.GetID());
         }
     }
 }
@@ -211,12 +221,14 @@ void InputHandler::GamepadButtonUp(const Uint8 button)
 
     m_heldGamepadButtons.erase(button);
 
-    for (InputAction action : m_actions)
+    for (InputAction& action : m_actions | std::views::values)
     {
         if (action.IsInputTypeAssignedToGamepadButton(button, InputType::Released))
         {
-            AddBoundActionToQueue(action.GetName());
+            AddBoundActionToQueue(action.GetID());
         }
+
+        action.ClearRepeatDelayTracker();
     }
 }
 
@@ -229,11 +241,11 @@ void InputHandler::GamepadButtonDown(const Uint8 button)
         m_heldGamepadButtons.try_emplace(button, 0.0f);
     }
 
-    for (InputAction action : m_actions)
+    for (const InputAction& action : m_actions | std::views::values)
     {
         if (action.IsInputTypeAssignedToGamepadButton(button, InputType::Pressed))
         {
-            AddBoundActionToQueue(action.GetName());
+            AddBoundActionToQueue(action.GetID());
         }
     }
 }
@@ -253,12 +265,12 @@ bool InputHandler::IsGamepadButtonBeingHeld(const Uint8 button) const
     return m_heldGamepadButtons.contains(button);
 }
 
-bool InputHandler::IsInputActionBeingHeld(const std::string& actionName)
+bool InputHandler::IsInputActionBeingHeld(const Uint16 id)
 {
-    const InputAction* action = GetInputAction(actionName);
+    const InputAction* action = GetInputActionByID(id);
     if (!action)
     {
-        std::cerr << "InputHandler::IsInputActionBeingHeld::Failed to find Input action with the name " << actionName << std::endl;
+        std::cerr << "InputHandler::IsInputActionBeingHeld::Failed to find Input action with the ID: " << id << std::endl;
         return false;
     }
 
@@ -280,27 +292,68 @@ bool InputHandler::IsInputActionBeingHeld(const std::string& actionName)
     return false;
 }
 
-void InputHandler::BindFunctionToAction(const std::string& actionName, const std::function<void()>& function)
+void InputHandler::BindFunctionToAction(const Uint16 actionID, const std::function<void()>& function)
 {
-    const InputAction* foundAction = GetInputAction(actionName);
+    const InputAction* foundAction = GetInputActionByID(actionID);
     if (!foundAction)
     {
-        std::cerr << "InputHandler::BindFunctionToAction::Unable to find Input Action with the name " << actionName << std::endl;
+        std::cerr << "InputHandler::BindFunctionToAction::Unable to find Input Action with the ID: " << actionID << std::endl;
         return;
     }
 
-    m_actionBindings.try_emplace(actionName, function);
+    m_actionBindings.try_emplace(actionID, function);
 }
 
-InputAction* InputHandler::GetInputAction(const std::string& name)
+const InputAction* InputHandler::GetInputActionByID(const Uint16 inID) const
 {
-    for (int i = 0; i < m_actions.size(); i++)
+    try
     {
-        if (m_actions[i].GetName() == name)
+        return &m_actions.at(inID);
+    }
+    catch (const std::out_of_range& error)
+    {
+        std::cerr << "InputHandler::GetInputActionByID::Unable to find action with the ID: " << inID << std::endl;
+        return nullptr;
+    }
+}
+
+InputAction* InputHandler::GetInputActionByID(const Uint16 inID)
+{
+    try
+    {
+        return &m_actions.at(inID);
+    }
+    catch (const std::out_of_range& error)
+    {
+        std::cerr << "InputHandler::GetInputActionByID::Unable to find action with the ID: " << inID << std::endl;
+        return nullptr;
+    }
+}
+
+const InputAction* InputHandler::GetInputActionByName(const std::string& name) const
+{
+    for (const InputAction& action : m_actions | std::views::values)
+    {
+        if (action.GetName() == name)
         {
-            return &m_actions[i];
+            return &action;
         }
     }
 
+    // std::cerr << "InputHandler::GetInputActionByName::Unable to find action with the name " << name << std::endl;
+    return nullptr;
+}
+
+InputAction* InputHandler::GetInputActionByName(const std::string& name)
+{
+    for (InputAction& action : m_actions | std::views::values)
+    {
+        if (action.GetName() == name)
+        {
+            return &action;
+        }
+    }
+
+    // std::cerr << "InputHandler::GetInputActionByName::Unable to find action with the name " << name << std::endl;
     return nullptr;
 }

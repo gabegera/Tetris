@@ -302,7 +302,7 @@ void BlockManager::MoveShapeLeft()
         if (IsIndexAtLeftBorder(fallingBlockIndex)
             || (IsBlockLeftOfIndex(fallingBlockIndex) && !IsFallingBlockLeftOfIndex(fallingBlockIndex)))
         {
-            std::cerr << "BlockManager::MoveShapeLeft::Can't move left, obstructed." << std::endl;
+            std::cout << "BlockManager::MoveShapeLeft::Can't move left, obstructed." << std::endl;
             return;
         }
     }

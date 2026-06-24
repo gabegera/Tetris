@@ -17,7 +17,11 @@ class InputAction
 public:
     explicit InputAction(const std::string& inName);
 
+private:
+    inline static Uint16 m_idCounter = 0;
+
 protected:
+    const Uint16 m_id;
     const std::string m_name;
     std::vector<std::pair<SDL_Keycode, InputType>> m_assignedKeys;
     std::vector<std::pair<Uint8, InputType>> m_assignedMouseButtons;
@@ -44,6 +48,8 @@ public:
 
     // In Seconds.
     void ClearRepeatDelayTracker();
+
+    Uint8 GetID() const;
 
     const std::string& GetName() const;
 
