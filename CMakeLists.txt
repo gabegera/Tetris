@@ -86,6 +86,8 @@ add_executable(Tetris WIN32 src/main.cpp
         src/InputHandler.h
         src/InputAction.cpp
         src/InputAction.h
+        src/PlayerController.cpp
+        src/PlayerController.h
 )
 
 target_link_libraries(Tetris PRIVATE

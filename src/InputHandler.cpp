@@ -7,151 +7,12 @@
 
 InputHandler::InputHandler(Application& app) : m_app(app)
 {
-    InputAction* ExitAction = CreateInputAction("IA_Exit");
-    ExitAction->AssignKey(SDLK_ESCAPE, InputType::Pressed);
-    ExitAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_START, InputType::Pressed);
-    BindFunctionToAction(ExitAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.StopGame();
-        });
 
-    InputAction* MoveShapeRightAction = CreateInputAction("IA_MoveShapeRight");
-    MoveShapeRightAction->AssignKey(SDLK_D, InputType::Pressed);
-    MoveShapeRightAction->AssignKey(SDLK_D, InputType::Held);
-    MoveShapeRightAction->AssignKey(SDLK_RIGHT, InputType::Pressed);
-    MoveShapeRightAction->AssignKey(SDLK_RIGHT, InputType::Held);
-    MoveShapeRightAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT, InputType::Pressed);
-    MoveShapeRightAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT, InputType::Held);
-    MoveShapeRightAction->SetRepeatDelay(0.1f);
-    BindFunctionToAction(MoveShapeRightAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.GetGame()->GetBlockManager()->MoveShapeRight();
-        });
-
-    InputAction* MoveShapeLeftAction = CreateInputAction("IA_MoveShapeLeft");
-    MoveShapeLeftAction->AssignKey(SDLK_A, InputType::Pressed);
-    MoveShapeLeftAction->AssignKey(SDLK_A, InputType::Held);
-    MoveShapeLeftAction->AssignKey(SDLK_LEFT, InputType::Pressed);
-    MoveShapeLeftAction->AssignKey(SDLK_LEFT, InputType::Held);
-    MoveShapeLeftAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT, InputType::Pressed);
-    MoveShapeLeftAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT, InputType::Held);
-    MoveShapeLeftAction->SetRepeatDelay(0.1f);
-    BindFunctionToAction(MoveShapeLeftAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.GetGame()->GetBlockManager()->MoveShapeLeft();
-        });
-
-    InputAction* MoveShapeDownAction = CreateInputAction("IA_MoveShapeDown");
-    MoveShapeDownAction->AssignKey(SDLK_S, InputType::Pressed);
-    MoveShapeDownAction->AssignKey(SDLK_S, InputType::Held);
-    MoveShapeDownAction->AssignKey(SDLK_DOWN, InputType::Pressed);
-    MoveShapeDownAction->AssignKey(SDLK_DOWN, InputType::Held);
-    MoveShapeDownAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Pressed);
-    MoveShapeDownAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Held);
-    MoveShapeDownAction->SetRepeatDelay(0.1f);
-    BindFunctionToAction(MoveShapeDownAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.GetGame()->GetBlockManager()->MoveShapeDown();
-        });
-
-    InputAction* DropShapeAction = CreateInputAction("IA_DropShape");
-    DropShapeAction->AssignKey(SDLK_W, InputType::Pressed);
-    DropShapeAction->AssignKey(SDLK_UP, InputType::Pressed);
-    DropShapeAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_UP, InputType::Pressed);
-    BindFunctionToAction(DropShapeAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.GetGame()->GetBlockManager()->DropShape();
-        });
-
-    InputAction* RotateClockwiseAction = CreateInputAction("IA_RotateClockwise");
-    RotateClockwiseAction->AssignKey(SDLK_SPACE, InputType::Pressed);
-    RotateClockwiseAction->AssignKey(SDLK_E, InputType::Pressed);
-    RotateClockwiseAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_SOUTH, InputType::Pressed);
-    BindFunctionToAction(RotateClockwiseAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.GetGame()->GetBlockManager()->RotateShapeClockwise();
-        });
-
-    InputAction* RotateCounterClockwiseAction = CreateInputAction("IA_RotateCounterClockwise");
-    RotateCounterClockwiseAction->AssignKey(SDLK_LALT, InputType::Pressed);
-    RotateCounterClockwiseAction->AssignKey(SDLK_Q, InputType::Pressed);
-    RotateCounterClockwiseAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_EAST, InputType::Pressed);
-    BindFunctionToAction(RotateCounterClockwiseAction->GetName(),
-        [this]()
-        {
-            if (!m_app.IsGameRunning()) return;
-            m_app.GetGame()->GetBlockManager()->RotateShapeCounterClockwise();
-        });
-
-    InputAction* SelectNextUIElementAction = CreateInputAction("IA_SelectNextUIElement");
-    SelectNextUIElementAction->AssignKey(SDLK_S, InputType::Pressed);
-    SelectNextUIElementAction->AssignKey(SDLK_DOWN, InputType::Pressed);
-    SelectNextUIElementAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Pressed);
-    BindFunctionToAction(SelectNextUIElementAction->GetName(),
-        [this]()
-        {
-            if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
-            m_app.GetActiveMenu()->SelectNextElement();
-        });
-
-    InputAction* SelectPreviousUIElementAction = CreateInputAction("IA_SelectPreviousUIElement");
-    SelectPreviousUIElementAction->AssignKey(SDLK_W, InputType::Pressed);
-    SelectPreviousUIElementAction->AssignKey(SDLK_UP, InputType::Pressed);
-    SelectPreviousUIElementAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN, InputType::Pressed);
-    BindFunctionToAction(SelectPreviousUIElementAction->GetName(),
-        [this]()
-        {
-            if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
-            m_app.GetActiveMenu()->SelectPreviousElement();
-        });
-
-    InputAction* TriggerUIElementAction = CreateInputAction("IA_TriggerUIElement");
-    TriggerUIElementAction->AssignKey(SDLK_SPACE, InputType::Pressed);
-    TriggerUIElementAction->AssignKey(SDLK_RETURN, InputType::Pressed);
-    TriggerUIElementAction->AssignGamepadButton(SDL_GAMEPAD_BUTTON_SOUTH, InputType::Pressed);
-    BindFunctionToAction(TriggerUIElementAction->GetName(),
-        [this]()
-        {
-            if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
-            m_app.GetActiveMenu()->TriggerSelectedElement();
-        });
-
-    InputAction* ClickUIElementAction = CreateInputAction("IA_ClickUIElement");
-    ClickUIElementAction->AssignMouseButton(SDL_BUTTON_LEFT, InputType::Released);
-    BindFunctionToAction(ClickUIElementAction->GetName(),
-        [this]()
-        {
-            if (!m_app.GetActiveMenu() || m_app.IsGameRunning()) return;
-            m_app.GetActiveMenu()->TriggerElementBelowCursor();
-        });
 }
 
 InputHandler::~InputHandler()
 {
 
-}
-
-InputAction* InputHandler::CreateInputAction(const std::string& inName)
-{
-    if (GetInputAction(inName))
-    {
-        std::cerr << "InputHandler::CreateInputAction::Action with the name " << inName << " already exists." << std::endl;
-        return nullptr;
-    }
-
-    return &m_actions.emplace_back(InputAction(inName));
 }
 
 void InputHandler::AddBoundActionToQueue(const std::string& actionName)
@@ -255,6 +116,17 @@ void InputHandler::Update(const float deltaTime)
     UpdateHeldInputs(deltaTime);
 
     ExecuteQueuedActions();
+}
+
+InputAction* InputHandler::CreateInputAction(const std::string& inName)
+{
+    if (GetInputAction(inName))
+    {
+        std::cerr << "InputHandler::CreateInputAction::Action with the name " << inName << " already exists." << std::endl;
+        return nullptr;
+    }
+
+    return &m_actions.emplace_back(InputAction(inName));
 }
 
 void InputHandler::KeyUp(const SDL_Keycode key)
@@ -379,6 +251,33 @@ bool InputHandler::IsMouseButtonBeingHeld(const Uint8 button) const
 bool InputHandler::IsGamepadButtonBeingHeld(const Uint8 button) const
 {
     return m_heldGamepadButtons.contains(button);
+}
+
+bool InputHandler::IsInputActionBeingHeld(const std::string& actionName)
+{
+    const InputAction* action = GetInputAction(actionName);
+    if (!action)
+    {
+        std::cerr << "InputHandler::IsInputActionBeingHeld::Failed to find Input action with the name " << actionName << std::endl;
+        return false;
+    }
+
+    for (const auto& key : action->GetAssignedKeys() | std::views::keys)
+    {
+        if (m_heldKeys.contains(key)) return true;
+    }
+
+    for (const auto& button : action->GetAssignedMouseButtons() | std::views::keys)
+    {
+        if (m_heldKeys.contains(button)) return true;
+    }
+
+    for (const auto& button : action->GetAssignedGamepadButtons() | std::views::keys)
+    {
+        if (m_heldKeys.contains(button)) return true;
+    }
+
+    return false;
 }
 
 void InputHandler::BindFunctionToAction(const std::string& actionName, const std::function<void()>& function)

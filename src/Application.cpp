@@ -6,7 +6,7 @@
 #include "SDL3/SDL_events.h"
 #include "UI/MainMenu.h"
 
-Application::Application() : m_inputHandler(*this), m_renderer(*this)
+Application::Application() : m_inputHandler(*this), m_playerController(*this), m_renderer(*this)
 {
 
 }
@@ -154,6 +154,26 @@ bool Application::IsGameRunning() const
 float Application::GetDeltaTime() const
 {
     return m_deltaTime;
+}
+
+InputHandler* Application::GetInputHandler()
+{
+    return &m_inputHandler;
+}
+
+const InputHandler* Application::GetInputHandler() const
+{
+    return &m_inputHandler;
+}
+
+PlayerController* Application::GetPlayerController()
+{
+    return &m_playerController;
+}
+
+const PlayerController* Application::GetPlayerController() const
+{
+    return &m_playerController;
 }
 
 Renderer* Application::GetRenderer()

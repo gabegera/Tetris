@@ -52,6 +52,21 @@ const std::string& InputAction::GetName() const
     return m_name;
 }
 
+const std::vector<std::pair<SDL_Keycode, InputType>>& InputAction::GetAssignedKeys() const
+{
+    return m_assignedKeys;
+}
+
+const std::vector<std::pair<Uint8, InputType>>& InputAction::GetAssignedMouseButtons() const
+{
+    return m_assignedMouseButtons;
+}
+
+const std::vector<std::pair<Uint8, InputType>>& InputAction::GetAssignedGamepadButtons() const
+{
+    return m_assignedGamepadButtons;
+}
+
 float InputAction::GetHoldDuration() const
 {
     return m_holdDuration;

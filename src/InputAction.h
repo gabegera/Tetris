@@ -47,6 +47,10 @@ public:
 
     const std::string& GetName() const;
 
+    const std::vector<std::pair<SDL_Keycode, InputType>>& GetAssignedKeys() const;
+    const std::vector<std::pair<Uint8, InputType>>& GetAssignedMouseButtons() const;
+    const std::vector<std::pair<Uint8, InputType>>& GetAssignedGamepadButtons() const;
+
     // In Seconds
     float GetHoldDuration() const;
 

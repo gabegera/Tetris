@@ -24,8 +24,6 @@ protected:
     std::unordered_map<std::string, std::function<void()>> m_actionBindings;
     std::vector<std::function<void()>> m_actionQueue;
 
-    InputAction* CreateInputAction(const std::string& inName);
-
     void UpdateHeldInputs(float deltaTime);
 
     void AddBoundActionToQueue(const std::string& actionName);
@@ -34,6 +32,8 @@ protected:
 
 public:
     void Update(float deltaTime);
+
+    InputAction* CreateInputAction(const std::string& inName);
 
     void KeyUp(SDL_Keycode key);
     void KeyDown(SDL_Keycode key);
@@ -48,6 +48,8 @@ public:
     bool IsKeyBeingHeld(SDL_Keycode key) const;
     bool IsMouseButtonBeingHeld(Uint8 button) const;
     bool IsGamepadButtonBeingHeld(Uint8 button) const;
+
+    bool IsInputActionBeingHeld(const std::string& actionName);
 
     void BindFunctionToAction(const std::string& actionName, const std::function<void()>& function);
 

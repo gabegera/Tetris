@@ -2,6 +2,7 @@
 
 #include "Game.h"
 #include "InputHandler.h"
+#include "PlayerController.h"
 #include "Renderer.h"
 #include "SDL3/SDL_stdinc.h"
 
@@ -15,6 +16,7 @@ public:
 
 protected:
     InputHandler m_inputHandler;
+    PlayerController m_playerController;
     Renderer m_renderer;
 
     std::unique_ptr<Theme> m_theme = std::make_unique<Theme>();
@@ -52,6 +54,12 @@ public:
     bool IsGameRunning() const;
 
     float GetDeltaTime() const;
+
+    InputHandler* GetInputHandler();
+    const InputHandler* GetInputHandler() const;
+
+    PlayerController* GetPlayerController();
+    const PlayerController* GetPlayerController() const;
 
     Renderer* GetRenderer();
 
