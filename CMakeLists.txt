@@ -15,35 +15,26 @@ FetchContent_Declare(
         SDL3
         GIT_REPOSITORY  https://github.com/libsdl-org/SDL.git
         GIT_TAG         release-3.4.8
-        GIT_SHALLOW     TRUE       # only fetch the target commit, not full history
-#        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL3"
-#        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL3/build"
+        GIT_SHALLOW     TRUE
 )
 set(SDL_STATIC ON)
 FetchContent_MakeAvailable(SDL3)
-#file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl3-tmp")
 
 FetchContent_Declare(
         SDL_image
         GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image.git
         GIT_TAG         release-3.4.4
-        GIT_SHALLOW     TRUE       # only fetch the target commit, not full history
-#        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL_image"
-#        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL_image/build"
+        GIT_SHALLOW     TRUE
 )
 FetchContent_MakeAvailable(SDL_image)
-#file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/sdl_image-tmp")
 
 FetchContent_Declare(
         SDL_ttf
         GIT_REPOSITORY  https://github.com/libsdl-org/SDL_ttf.git
         GIT_TAG         release-3.2.2
-        GIT_SHALLOW     TRUE       # only fetch the target commit, not full history
-#        SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/SDL_ttf"
-#        BINARY_DIR "${FETCHCONTENT_BASE_DIR}/SDL_ttf/build"
+        GIT_SHALLOW     TRUE
 )
 FetchContent_MakeAvailable(SDL_ttf)
-#file(REMOVE_RECURSE "${FETCHCONTENT_BASE_DIR}/SDL_ttf-tmp")
 
 FetchContent_Declare(
         battery-embed
@@ -88,6 +79,7 @@ add_executable(Tetris WIN32 src/main.cpp
         src/InputAction.h
         src/PlayerController.cpp
         src/PlayerController.h
+        src/Position.h
 )
 
 target_link_libraries(Tetris PRIVATE

@@ -26,8 +26,8 @@ protected:
 
     bool m_isRunning = true;
 
-    Uint32 m_lastTime = 0;
-    float m_deltaTime = 0.0f;
+    inline static Uint32 m_lastTime = 0;
+    inline static float m_deltaTime = 0.0f;
 
     void UpdateDeltaTime();
 
@@ -53,7 +53,7 @@ public:
 
     bool IsGameRunning() const;
 
-    float GetDeltaTime() const;
+    static float GetDeltaTime();
 
     InputHandler* GetInputHandler();
     const InputHandler* GetInputHandler() const;

@@ -151,7 +151,7 @@ bool Application::IsGameRunning() const
     return m_game != nullptr;
 }
 
-float Application::GetDeltaTime() const
+float Application::GetDeltaTime()
 {
     return m_deltaTime;
 }

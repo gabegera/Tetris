@@ -9,13 +9,6 @@
 struct Shape;
 class Game;
 
-struct Block
-{
-    explicit Block(const Shape* inShape) : m_owningShape(inShape) {}
-
-    const Shape* m_owningShape;
-};
-
 class BlockManager
 {
 public:
@@ -25,50 +18,59 @@ public:
 protected:
     Game& m_game;
 
-    // How many times in each direction the shape is allowed to be nudged when rotating.
-    const Uint8 m_maxNumberOfRotationNudges = 3;
-
     // How many seconds until the falling blocks get lowered.
     const float m_shapeFallingRate = 0.5f;
     float m_timeSinceShapeFell = 0.0f;
 
+    // The delay until a falling block gets locked into place.
+    const float m_lockDelay = 0.5f;
+    float m_lockDelayTracker = 0.0f;
+    const unsigned short m_numOfActionsBeforeLock = 15;
+    unsigned short m_lockActionsCounter = 0;
+
     std::vector<const Shape*> m_shapesBag;
     std::vector<const Shape*> m_shapesQueue;
 
-    std::vector<Uint16> m_fallingBlockIndices;
-    Shape m_fallingShape = Shape(0, "");
+    std::vector<unsigned int> m_fallingBlockIndices;
 
-    std::vector<std::unique_ptr<Block>> m_blocks;
+    const Shape* m_fallingShape = nullptr;
+    Position m_fallingShapePosition;
+    RotationState m_fallingShapeRotationState = RotationState::Default;
 
-    Uint16 GetBlockIndexFromPos(Uint8 xPos, Uint8 yPos) const;
-    Uint8 GetBlockXPosFromIndex(Uint16 index) const;
-    Uint8 GetBlockYPosFromIndex(Uint16 index) const;
-    void GetBlockPosFromIndex(Uint16 index, Uint8& outXPos, Uint8& outYPos) const;
+    const Shape* m_heldShape = nullptr;
+    bool m_canHold = true;
+
+    std::vector<const Shape*> m_blocks;
+
+    unsigned int GetIndexFromPos(Position inPos) const;
+    unsigned int GetXPosFromIndex(unsigned int index) const;
+    unsigned int GetYPosFromIndex(unsigned int index) const;
+    Position GetPosFromIndex(unsigned int index) const;
 
     void FillShapesBag();
     void FillShapesQueue();
 
-    Uint16 CreateBlockAtPos(Uint8 xPos, Uint8 yPos, const Shape* owningShape);
-    Uint16 CreateBlockAtIndex(Uint16 index, const Shape* owningShape);
+    bool CreateBlockAtPos(Position targetPos, const Shape* owningShape);
+    bool CreateBlockAtIndex(unsigned int index, const Shape* owningShape);
 
-    void DeleteBlockAtPos(Uint8 xPos, Uint8 yPos);
-    void DeleteBlockAtIndex(Uint16 index);
+    void DeleteBlockAtPos(Position targetPos);
+    void DeleteBlockAtIndex(unsigned int index);
 
     void DeleteShape();
 
-    bool MoveBlockAtPos(Uint8 xPos, Uint8 yPos, Uint8 newXPos, Uint8 newYPos);
-    bool MoveBlockAtIndexToPos(Uint16 index, Uint8 newXPos, Uint8 newYPos);
-    bool MoveBlockAtPosToIndex(Uint8 xPos, Uint8 yPos, Uint16 newIndex);
-    bool MoveBlockAtIndex(Uint16 index, Uint16 newIndex);
+    bool MoveBlockAtPos(Position currentPos, Position targetPos);
+    bool MoveBlockAtIndexToPos(unsigned int currentIndex, Position targetPos);
+    bool MoveBlockAtPosToIndex(Position currentPos, unsigned int targetIndex);
+    bool MoveBlockAtIndex(unsigned int currentIndex, unsigned int targetIndex);
 
     // Creates a shape where the top left corner will reside at the target position.
-    bool CreateShapeAtPos(Uint8 xPos, Uint8 yPos, const Shape* shape);
+    bool CreateShapeAtPos(Position targetPos, const Shape* shape, RotationState shapeRotationState = RotationState::Default);
     // Creates a shape at the very top center of the game borders.
     bool CreateShapeAtTopCenter(const Shape* shape);
     // Creates the next shape in queue at the very top center of the game borders.
     bool CreateNextShapeInQueue();
 
-    void ClearLine(Uint8 yPos);
+    void ClearLine(unsigned int yPos);
     void ClearClearableLines();
 
     void SortFallingBlockIndicesAscending();
@@ -86,54 +88,63 @@ public:
     void DropShape();
     void RotateShapeClockwise();
     void RotateShapeCounterClockwise();
+    void HoldShape();
 
-    void GetAllBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
-    void GetFallingShapeBlocks(std::vector<Uint8>& xPositions, std::vector<Uint8>& yPositions, std::vector<Block*>& blockPtrs) const;
+    void ResetLockDelay();
+
+    std::vector<std::pair<Position, const Shape*>> GetAllBlocks() const;
+    std::vector<std::pair<Position, const Shape*>> GetFallingShapeBlocks() const;
 
     const Shape* GetFallingShape() const;
-    const Shape* GetOriginalFallingShape() const;
+    Position GetFallingShapePosition() const;
+    RotationState GetFallingShapeRotationState() const;
 
-    bool IsBlockAtPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsBlockAtIndex(Uint16 index) const;
+    bool IsBlockAtPos(Position inPos) const;
+    bool IsBlockAtIndex(unsigned int index) const;
 
-    bool IsFallingBlockAtPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsFallingBlockAtIndex(Uint16 index) const;
+    bool IsFallingBlockAtPos(Position inPos) const;
+    bool IsFallingBlockAtIndex(unsigned int index) const;
 
-    bool IsBlockBelowPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsBlockBelowIndex(Uint16 index) const;
+    bool IsBlockBelowPos(Position inPos) const;
+    bool IsBlockBelowIndex(unsigned int index) const;
 
-    bool IsFallingBlockBelowPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsFallingBlockBelowIndex(Uint16 index) const;
+    bool IsFallingBlockBelowPos(Position inPos) const;
+    bool IsFallingBlockBelowIndex(unsigned int index) const;
 
-    bool IsBlockLeftOfPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsBlockLeftOfIndex(Uint16 index) const;
+    bool IsBlockLeftOfPos(Position inPos) const;
+    bool IsBlockLeftOfIndex(unsigned int index) const;
 
-    bool IsFallingBlockLeftOfPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsFallingBlockLeftOfIndex(Uint16 index) const;
+    bool IsFallingBlockLeftOfPos(Position inPos) const;
+    bool IsFallingBlockLeftOfIndex(unsigned int index) const;
 
-    bool IsBlockRightOfPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsBlockRightOfIndex(Uint16 index) const;
+    bool IsBlockRightOfPos(Position inPos) const;
+    bool IsBlockRightOfIndex(unsigned int index) const;
 
-    bool IsFallingBlockRightOfPos(Uint8 xPos, Uint8 yPos) const;
-    bool IsFallingBlockRightOfIndex(Uint16 index) const;
+    bool IsFallingBlockRightOfPos(Position inPos) const;
+    bool IsFallingBlockRightOfIndex(unsigned int index) const;
 
-    bool IsBlockAtBottomBorder(Uint8 yPos) const;
-    bool IsIndexAtBottomBorder(Uint16 index) const;
+    bool IsBlockAtBottomBorder(unsigned int yPos) const;
+    bool IsIndexAtBottomBorder(unsigned int index) const;
 
-    bool IsBlockAtLeftBorder(Uint8 xPos) const;
-    bool IsIndexAtLeftBorder(Uint16 index) const;
+    bool IsBlockAtLeftBorder(unsigned int xPos) const;
+    bool IsIndexAtLeftBorder(unsigned int index) const;
 
-    bool IsBlockAtRightBorder(Uint8 xPos) const;
-    bool IsIndexAtRightBorder(Uint16 index) const;
+    bool IsBlockAtRightBorder(unsigned int xPos) const;
+    bool IsIndexAtRightBorder(unsigned int index) const;
 
-    bool CanLineBeCleared(Uint8 yPos) const;
+    bool CanFallingShapeMoveDown() const;
 
-    bool CanShapeBeCreatedAtPos(Uint8 xPos, Uint8 yPos, const Shape* shape) const;
+    bool HasLockDelayBeenPassed() const;
+    bool HasLockActionsBeenPassed() const;
 
-    void GetShapeTargetPos(Uint8& outXPos, Uint8& outYPos);
+    bool IsPositionInBounds(Position inPos) const;
 
-    /**
-     * @returns Vector containing Y positions of all clearable lines in the game.
-     */
-    std::vector<Uint8> GetClearableLines() const;
+    bool CanLineBeCleared(unsigned int yPos) const;
+
+    bool CanShapeBeCreatedAtPos(Position targetPos, const Shape* shape, RotationState rotationState = RotationState::Default) const;
+
+    Position GetShapeTargetPos() const;
+
+     /** @returns The Y positions of all clearable lines in the game. */
+    std::vector<unsigned int> GetClearableLines() const;
 };

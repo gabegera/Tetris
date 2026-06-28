@@ -43,11 +43,11 @@ void GameboyTheme::Init()
     m_shapeSurfaces.emplace(ClassicShapes::Z, SDL_LoadPNG_IO(textureIO, autoDeleteIO));
 
     m_backgroundColor = Color(215, 255, 200);
-    constexpr Color blockColor(170, 207, 158);
+    const Color blockColor(170, 207, 158);
     m_borderColor = blockColor;
     for (auto shape : ClassicShapes::Get())
     {
-        m_shapeColors[shape] = blockColor;
+        m_shapeColors.at(shape) = blockColor;
     }
 
     SDL_CloseIO(textureIO);

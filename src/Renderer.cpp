@@ -74,38 +74,35 @@ void Renderer::CreateTexturesFromTheme()
     m_borderTexture = borderTexture;
 }
 
-/**
- * Draws a transparent guide to show where your shape is going to land.
- * @param xPos Left corner of where to draw the shape.
- * @param yPos Top Corner of where to draw the shape.
- * @param currentFallingShape The falling shape after it was rotated.
- * @param originalFallingShape The falling shape before it was rotated.
- */
-void Renderer::DrawShapeGuideAtPos(const Uint8 xPos, const Uint8 yPos, const Shape* currentFallingShape, const Shape* originalFallingShape) const
+// Draws a transparent guide to show where your shape is going to land.
+void Renderer::DrawShapeGuideAtPos(const Position targetPos, const Shape* shape, const RotationState shapeRotationState) const
 {
-    SDL_FRect block;
-    block.w = m_blockResolution;
-    block.h = m_blockResolution;
-
-    for (int i = 0; i < currentFallingShape->blocks.size(); i++)
-    {
-        if (currentFallingShape->blocks[i] != ' ')
-        {
-            block.x = (xPos + (i % currentFallingShape->width)) * m_blockResolution;
-            block.x += m_blockResolution; // offset the border.
-            block.y = (yPos + std::floor((i * 1.0f) / currentFallingShape->width)) * m_blockResolution;
-            block.y += m_blockResolution;
-            if (m_shapeTextures.contains(originalFallingShape))
-            {
-                SDL_Texture* texture = m_shapeTextures.at(originalFallingShape);
-                auto [red, green, blue] = m_application.GetTheme()->GetShapeColor(originalFallingShape);
-                SDL_SetTextureColorMod(texture, red, green, blue);
-                SDL_SetTextureAlphaMod(texture, m_shapeGuideOpacity);
-                SDL_RenderTexture(m_renderer, texture, nullptr, &block);
-                SDL_SetTextureAlphaMod(texture, 255);
-            }
-        }
-    }
+    // SDL_FRect block;
+    // block.w = m_blockResolution;
+    // block.h = m_blockResolution;
+    //
+    // const std::vector<bool> stateShape = shape->GetRotationSateData(shapeRotationState);
+    // const unsigned int shapeWidth = shape->GetShapeDimensions();
+    //
+    // for (int i = 0; i < stateShape.size(); i++)
+    // {
+    //     if (stateShape[i] == false) continue;
+    //
+    //     block.x = targetPos.x + i % shapeWidth;
+    //     block.x *= m_blockResolution;
+    //     block.y = targetPos.y + std::floor(i / shapeWidth);
+    //     block.y *= m_blockResolution;
+    //
+    //     if (m_shapeTextures.contains(shape))
+    //     {
+    //         SDL_Texture* texture = m_shapeTextures.at(shape);
+    //         auto [red, green, blue, alpha] = m_application.GetTheme()->GetShapeColor(shape);
+    //         SDL_SetTextureColorMod(texture, red, green, blue);
+    //         SDL_SetTextureAlphaMod(texture, m_shapeGuideOpacity);
+    //         SDL_RenderTexture(m_renderer, texture, nullptr, &block);
+    //         SDL_SetTextureAlphaMod(texture, 255);
+    //     }
+    // }
 }
 
 void Renderer::DrawText(const std::string& inString, Uint32 xPos, Uint32 yPos, const Color color,

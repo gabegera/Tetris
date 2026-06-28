@@ -42,29 +42,24 @@ void Game::RenderBorders() const
 
 void Game::RenderBlocks()
 {
-    std::vector<Uint8> xPositions;
-    std::vector<Uint8> yPositions;
-    std::vector<Block*> blockPtrs;
-    GetBlockManager()->GetAllBlocks(xPositions, yPositions, blockPtrs);
+    std::vector<std::pair<Position, const Shape*>> blocks = GetBlockManager()->GetAllBlocks();
 
-    for (int i = 0; i < blockPtrs.size(); i++)
+    for (int i = 0; i < blocks.size(); i++)
     {
-        if (!blockPtrs[i])
+        if (!blocks[i].second)
         {
             std::cerr << "Game::RenderBlocks::Failed to render block. Invalid Block Pointer" << std::endl;
             continue;
         }
 
-        GetRenderer()->DrawBlockAtPos(xPositions[i] + 1, yPositions[i] + 1, blockPtrs[i]->m_owningShape);
+        GetRenderer()->DrawBlockAtPos(blocks[i].first.x + 1, blocks[i].first.y + 1, blocks[i].second);
     }
 }
 
 void Game::RenderShapeGuide()
 {
-    Uint8 xPos;
-    Uint8 yPos;
-    m_blockManager.GetShapeTargetPos(xPos, yPos);
-    GetRenderer()->DrawShapeGuideAtPos(xPos, yPos, m_blockManager.GetFallingShape(), m_blockManager.GetOriginalFallingShape());
+    const Position targetPos = m_blockManager.GetShapeTargetPos();
+    GetRenderer()->DrawShapeGuideAtPos(targetPos, m_blockManager.GetFallingShape(), m_blockManager.GetFallingShapeRotationState());
 }
 
 void Game::Start()
