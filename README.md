@@ -9,8 +9,9 @@ Keyboard:
 * A and D or Left and Right to move the Shape.
 * W or Up to drop the Shape.
 * S or Down to to lower the Shape.
-* Space or E to Rotate the Shape Clockwise.
-* LAlt or Q to roate the Shape Counter-Clockwise.
+* X to Rotate the Shape Clockwise.
+* Z to roate the Shape Counter-Clockwise.
+* Space to Hold the Shape.
 
 Gamepad:
 * D-Pad Left and right to move the shape.
@@ -18,3 +19,4 @@ Gamepad:
 * D-Pad Down to lower the shape.
 * South Button (A on Xbox, X on Playstation) to rotate Clockwise.
 * East Button (B on Xbox, O on Playstation) to rotate Counter-Clockwise.
+* Either bumper to Hold the Shape.
